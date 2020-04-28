@@ -26,7 +26,7 @@ import pandas as pd
 
 image_name = ''
 BATCH_SIZE = 16
-EPOCHS = 10
+EPOCHS = 10 
 
 def get_labels(file='metadata.csv'):
     
@@ -36,8 +36,8 @@ def get_labels(file='metadata.csv'):
         lines = csv.reader(metadata)
         dataset = list(lines)
 
-        for x in range(len(dataset)):
-            img_path = 'scraped/' + dataset[x][0]
+        for x in range(1, len(dataset)):
+            img_path = 'scraped/' + dataset[x][1] + "/" + dataset[x][0]
             path_obj = Path(img_path)
             if not path_obj.is_file():
                 continue
@@ -73,18 +73,18 @@ def predict_pattern(img_path):
     
     images,labels = load_data()
     
-    img_data = np.array(images)
+    img_data = np.array(images[(ITERATION-1)*LIMIT:ITERATION*LIMIT])
     print (img_data.shape)
     img_data=np.rollaxis(img_data, 1, 0)
     print (img_data.shape)
     img_data=img_data[0]
     print ("Final shape :", img_data.shape)
     
-    classes = 8
+    classes = 19
     samples = img_data.shape[0]
     print("Number of images :", samples)
     
-    Y = np_utils.to_categorical(labels, classes)
+    Y = np_utils.to_categorical(labels[(ITERATION-1)*LIMIT:ITERATION*LIMIT], classes)
     
     print("Shuffling...")
     x,y = shuffle(img_data, Y, random_state=42)
@@ -123,6 +123,8 @@ def predict_pattern(img_path):
     with open("new_model.json", "w") as json_file:
         json_file.write(new_model_json)
     new_model.save_weights('trained_model.h5')
+    
+    print("Model and weights saved!")
     
     (loss, accuracy) = new_model.evaluate(X_test, y_test, batch_size=10, verbose=1)
 

@@ -28,10 +28,13 @@ try:
     
         print("\nPrinting urls")
         for row in records:
-            img_url = row[1]
+            img_url = row[1].replace('\\', '')
             print("Image url: ", img_url)
             img_res = requests.get(img_url)
-            Image.open(BytesIO(img_res.content)).save('scraped_database/' + row[0] + '.jpg')
+            try:
+                Image.open(BytesIO(img_res.content)).save('scraped_database_tags_new/' + row[0] + '.jpg')
+            except:
+                print("Error while getting image: ", img_url)
             
         print("Total number of image urls: ", cursor.rowcount)
             
