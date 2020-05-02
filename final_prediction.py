@@ -15,6 +15,12 @@ import csv
 
 features_file = 'features_complete_v2.csv'
 
+ALPHA = 0.01
+L1_RATIO = 0.99
+
+N_ESTIMATORS = 242
+MAX_DEPTH = 5
+
 def multi_linear_regression(X_train, X_test, y_train, y_test):
     
     print("****** MULTIVARIABLE LINEAR REGRESSION ******", end="\n\n")
@@ -45,36 +51,42 @@ def elastic_net_prediction_opt(X_train, X_test, y_train, y_test):
     
     print("************** ELASTIC NET OPT **************", end="\n\n")
     
-    '''
     param_dist = {'alpha': stats.expon(0, 1),
                   'l1_ratio': stats.expon(0, 1)}
     
     enet = ElasticNet()
-    model_cv = RandomizedSearchCV(enet, param_dist, cv=20, n_iter=500, scoring='r2', n_jobs=4, 
-                              verbose=2
+    model_cv = RandomizedSearchCV(enet, param_dist, cv=10, n_iter=50, 
+                                  scoring='r2', n_jobs=4, verbose=1
                               )
-    '''
     
-    candidates = np.linspace(0.0, 1.0, num=21)
     
-    param_dist = {'alpha': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                  'l1_ratio': candidates}
+    # candidates = np.linspace(0.0, 1.0, num=21)
     
-    model_cv = ElasticNetCV(l1_ratio=[0.05, 0.15, 0.5, 0.7, 0.9, 0.95, 0.99, 1], 
-                            alphas=np.array([0.141, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]), n_jobs=4,
-                            eps=0.1)
+    # param_dist = {'alpha': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    #              'l1_ratio': candidates}
+    
+    # model_cv = ElasticNetCV(l1_ratio=[0.05, 0.15, 0.5, 0.7, 0.9, 0.95, 0.99, 1], 
+    #                        alphas=np.array([0.141, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]), n_jobs=4,
+    #                        eps=0.1)
+    
     
     
     model_cv.fit(X_train, y_train)
     
-    print("Best params : alpha={0}; l1_ratio={1}".format(model_cv.alpha_, model_cv.l1_ratio_), end="\n\n")
-    # print("Best score :", model_cv.best_score_)
+    # print("Best params : alpha={0}; l1_ratio={1}".format(model_cv.alpha_, model_cv.l1_ratio_), end="\n\n")
+    print("Best params :", model_cv.best_params_)
+    print("Best score :", model_cv.best_score_)
     
     y_pred = model_cv.predict(X_test)
     
     evaluate('Elastic net opt', y_test, y_pred)
         
     print("\n*********************************************", end="\n\n")
+    
+    alpha = model_cv.best_params_['alpha']
+    l1_ratio = model_cv.best_params_['l1_ratio']
+
+    return alpha, l1_ratio
 
 def svr_regression(X_train, X_test, y_train, y_test):
     
@@ -153,6 +165,10 @@ def random_forest_prediction_opt(X_train, X_test, y_train, y_test):
     
     print("\n*********************************************", end="\n\n")
 
+    n_estimators = rscv.best_params_['n_estimators']
+    max_depth = rscv.best_params_['max_depth']
+
+    return n_estimators, max_depth
 
 def baseline_prediction(y_test):
     
@@ -168,12 +184,14 @@ def baseline_prediction(y_test):
     
     print("\n*********************************************", end="\n\n")
 
-def vote_prediction(X_train, X_test, y_train, y_test):
+def vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth):
     
     print("******************* VOTING ******************", end="\n\n")
     
-    forest = RandomForestRegressor(n_estimators=242, max_depth=5)
-    elasic_net = ElasticNet(alpha=0.141, l1_ratio=1.0)
+    # forest = RandomForestRegressor(n_estimators=242, max_depth=5)
+    # elasic_net = ElasticNet(alpha=0.141, l1_ratio=1.0)
+    forest = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth)
+    elasic_net = ElasticNet(alpha=alpha, l1_ratio=l1_ratio)
     linear_regressor = LinearRegression()
     
     voting_regressor = VotingRegressor(estimators=[('rf', forest), ('enet', elasic_net), ('lr', linear_regressor)])
@@ -206,6 +224,8 @@ if __name__=="__main__":
     
     dataset = pd.read_csv(features_file)
     
+    print(dataset.describe())
+    
     X = dataset[['comments count', 'section', 'type', 'person', 'people', 'cat', 'dog', 
              'other animal', 'poster', 'clothing', 'car', 'toy', 'tree', 'glasses', 
              'building', 'electronic device', 'airplane', 'guitar', 'pattern', 
@@ -214,7 +234,7 @@ if __name__=="__main__":
     
     y = dataset['score'].values
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
     
     if len(X[0]) != 30 or len(X) != 6007:
         raise
@@ -225,18 +245,14 @@ if __name__=="__main__":
      
     elastic_net_prediction(X_train, X_test, y_train, y_test)
     
+    alpha, l1_ratio = elastic_net_prediction_opt(X_train, X_test, y_train, y_test)
+    
     svr_regression(X_train, X_test, y_train, y_test)
     
     svr_regression_opt(X_train, X_test, y_train, y_test)
     
     random_forest_prediction(X_train, X_test, y_train, y_test)
+        
+    n_estimators, max_depth = random_forest_prediction_opt(X_train, X_test, y_train, y_test)
     
-    majority_vote_prediction(X_train, X_test, y_train, y_test)
-    
-    random_forest_prediction_opt(X_train, X_test, y_train, y_test)
-    
-    elastic_net_prediction_opt(X_train, X_test, y_train, y_test)
-    
-    vote_prediction(X_train, X_test, y_train, y_test)
-
-    
+    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth)   
