@@ -236,3 +236,6 @@ infinite_scroll.py
 **/ssd_mobilenet_v2_oid_v4_2018_12_12.tar.gz
 **/ssdlite_mobilenet_v2_coco_2018_05_09
 **/test_detection
+
+# File with trained model weigths is too large
+meme_patterns_weights.h5
