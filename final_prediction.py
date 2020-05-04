@@ -9,17 +9,25 @@ from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor, VotingRegressor
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 
+# import autosklearn.regression
+
 import scipy.stats as stats
 
 import csv
 
 features_file = 'features_complete_v2.csv'
+results_file_name = 'results_new.csv'
 
-ALPHA = 0.01
-L1_RATIO = 0.99
+ALPHA = 0.1
+L1_RATIO = 0.7
 
 N_ESTIMATORS = 242
 MAX_DEPTH = 5
+
+# When using all data
+# USE_DATA = ['objects', 'pattern', 'comments', 'keywords']
+USE_DATA = ['objects', 'pattern',]
+# USE_DATA = []
 
 def multi_linear_regression(X_train, X_test, y_train, y_test):
     
@@ -46,8 +54,10 @@ def elastic_net_prediction(X_train, X_test, y_train, y_test):
     evaluate('Elastic net', y_test, y_pred)
         
     print("\n*********************************************", end="\n\n")
+    
+    return metrics.r2_score(y_test, y_pred)
 
-def elastic_net_prediction_opt(X_train, X_test, y_train, y_test):
+def elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2):
     
     print("************** ELASTIC NET OPT **************", end="\n\n")
     
@@ -83,8 +93,12 @@ def elastic_net_prediction_opt(X_train, X_test, y_train, y_test):
         
     print("\n*********************************************", end="\n\n")
     
-    alpha = model_cv.best_params_['alpha']
-    l1_ratio = model_cv.best_params_['l1_ratio']
+    if enet_r2 < metrics.r2_score(y_test, y_pred):
+        alpha = model_cv.best_params_['alpha']
+        l1_ratio = model_cv.best_params_['l1_ratio']
+    else:
+        alpha = ALPHA
+        l1_ratio = L1_RATIO
 
     return alpha, l1_ratio
 
@@ -203,6 +217,25 @@ def vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimat
     
     print("\n*********************************************", end="\n\n")
 
+'''
+def auto_prediction(X_train, X_test, y_train, y_test):
+    
+    feature_types = []
+
+    automl = autosklearn.regression.AutoSklearnRegressor(
+        time_left_for_this_task=3600,
+        per_run_time_limit=60
+    )
+    automl.fit(X_train, y_train, dataset_name='9gag complete features',
+               feat_type=feature_types)
+
+
+    print(automl.show_models())
+    y_pred = automl.predict(X_test)
+    
+    evaluate("Automatic model finder", y_test, y_pred)
+'''
+  
 def evaluate(method_name, y_test, y_pred):
     
     mae = metrics.mean_absolute_error(y_test, y_pred)
@@ -215,10 +248,10 @@ def evaluate(method_name, y_test, y_pred):
     print('Root Mean Squared Error:', rmse) 
     print("r^2 on test data :", r2)
     
-    with open('results.csv', 'a', newline='') as results_file:
+    with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
-        writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4)])
+        writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", "")])
     
 if __name__=="__main__":
     
@@ -226,26 +259,62 @@ if __name__=="__main__":
     
     print(dataset.describe())
     
+    
+     
+    # Using all data
+    '''
     X = dataset[['comments count', 'section', 'type', 'person', 'people', 'cat', 'dog', 
              'other animal', 'poster', 'clothing', 'car', 'toy', 'tree', 'glasses', 
              'building', 'electronic device', 'airplane', 'guitar', 'pattern', 
              'comments', 'kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 'kw_6', 'kw_7', 
              'kw_8', 'kw_9', 'kw_10',]].values
+    '''
+    
+    # Database features
+    # using_features = ['comments count', 'section', 'type']
+    using_features = ['comments count', 'section', 'type']
+    
+    used_features = using_features.copy()
+        
+    used_features.extend(USE_DATA)
+    
+    print('Using feature groups : ', end='')
+    
+    if 'objects' in USE_DATA:
+        print('OBJECTS ', end='')
+        using_features.extend(['person', 'people', 'cat', 'dog', 
+             'other animal', 'poster', 'clothing', 'car', 'toy', 'tree', 'glasses', 
+             'building', 'electronic device', 'airplane', 'guitar'])
+    
+    if 'pattern' in USE_DATA:
+        print('PATTERN ', end='')
+        using_features.append('pattern')
+    
+    if 'comments' in USE_DATA:
+        print('COMMENTS ', end='')
+        using_features.append('comments')
+    
+    if 'keywords' in USE_DATA:
+        print('KEYWORDS ', end='')
+        using_features.extend(['kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 'kw_6', 'kw_7', 'kw_8', 'kw_9', 'kw_10'])
+    
+    print("\nUsing features :", using_features)
+    X = dataset[using_features].values
     
     y = dataset['score'].values
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=5)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     
-    if len(X[0]) != 30 or len(X) != 6007:
+    if len(X) != 6007:
         raise
 
     baseline_prediction(y)
 
     multi_linear_regression(X_train, X_test, y_train, y_test)
      
-    elastic_net_prediction(X_train, X_test, y_train, y_test)
+    enet_r2 = elastic_net_prediction(X_train, X_test, y_train, y_test)
     
-    alpha, l1_ratio = elastic_net_prediction_opt(X_train, X_test, y_train, y_test)
+    alpha, l1_ratio = elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2)
     
     svr_regression(X_train, X_test, y_train, y_test)
     
@@ -255,4 +324,12 @@ if __name__=="__main__":
         
     n_estimators, max_depth = random_forest_prediction_opt(X_train, X_test, y_train, y_test)
     
-    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth)   
+    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth)
+
+    # auto_prediction(X_train, X_test, y_train, y_test)
+    
+    with open(results_file_name, 'a', newline='') as results_file:
+        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        writer.writerow([])
+    
