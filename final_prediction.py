@@ -283,7 +283,7 @@ if __name__=="__main__":
     
     # Database features
     # using_features = ['comments count', 'section', 'type']
-    using_features = ['comments count', 'section', 'type']
+    using_features = ['type']
     
     used_features = using_features.copy()
         

@@ -1,0 +1,2 @@
+Regressor,MAE,MSE,RMSE,R2 score
+Random forest opt,8.2905,135.6929,11.6487,0.2822
