@@ -26,7 +26,7 @@ MAX_DEPTH = 5
 
 # When using all data
 # USE_DATA = ['objects', 'pattern', 'comments', 'keywords']
-USE_DATA = ['objects', 'pattern',]
+USE_DATA = ['objects', 'pattern', 'comments']
 # USE_DATA = []
 
 def multi_linear_regression(X_train, X_test, y_train, y_test):
@@ -238,6 +238,8 @@ def auto_prediction(X_train, X_test, y_train, y_test):
   
 def evaluate(method_name, y_test, y_pred):
     
+    
+    
     mae = metrics.mean_absolute_error(y_test, y_pred)
     mse = metrics.mean_squared_error(y_test, y_pred)
     rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
@@ -252,6 +254,15 @@ def evaluate(method_name, y_test, y_pred):
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", "")])
+   
+    with open('predictions.csv', 'a', newline='') as results_file:
+        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        if len(y_test) != len(y_pred):
+            raise
+            
+        for i in range(len(y_test)):
+            writer.writerow([y_test[i], y_pred[i]])
     
 if __name__=="__main__":
     
@@ -307,6 +318,11 @@ if __name__=="__main__":
     
     if len(X) != 6007:
         raise
+
+    with open('predictions.csv', 'w', newline='') as results_file:
+        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        writer.writerow(['y', 'prediction'])
 
     baseline_prediction(y)
 

@@ -3,6 +3,8 @@
 import mysql.connector
 from mysql.connector import Error
 
+import numpy as np
+
 import csv
 
 class Features:
@@ -32,7 +34,7 @@ class Features:
         self.objects = objects
         self.pattern = pattern
         
-        self.keywords = keywords
+        # self.keywords = keywords
         self.comments = comments        
     
     def get_as_list(self):
@@ -47,12 +49,13 @@ class Features:
         ret_list.extend(disassemble_binary(self.objects))
         ret_list.append(self.pattern)
         ret_list.append(self.comments)
-        ret_list.extend(disassemble_binary2(self.keywords))
+        # ret_list.extend(disassemble_binary2(self.keywords))
         ret_list.append(self.score)
         
-        print(ret_list)
+        # print(ret_list)
         
-        if len(ret_list) != 32:
+        
+        if len(ret_list) != 22:
             raise
         
         return ret_list
@@ -64,8 +67,8 @@ headers = ['id', 'comments count', 'section', 'type',
            'electronic device', 'airplane', 'guitar',
            'pattern', 'comments',
            # Keywords
-           'kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 
-           'kw_6', 'kw_7', 'kw_8', 'kw_9', 'kw_10', 
+           # 'kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 
+           # 'kw_6', 'kw_7', 'kw_8', 'kw_9', 'kw_10', 
            'score']
 
 def database_features():
@@ -154,9 +157,37 @@ def pattern_feature(features_array):
 
 def comments_feature(features_array):
     
-    for features in features_array:
-                
-            features.comments = 2.5
+    take_avg = 0
+    
+    with open("all_avg_sent_per_post.csv", 'r', newline='') as comments_file:
+        lines = list(csv.reader(comments_file))[1:]
+        
+        # Calculate average
+        np_lines = np.array(lines)
+        
+        np_lines_values = np_lines[:, 1]
+    
+        mean_value = np.mean(np_lines_values.astype(np.float))
+        
+        print("Mean value for comments :", mean_value) 
+        
+        objects_dict = {}
+        
+        for line in lines:
+            objects_dict[line[0]] = int(line[1])
+            
+        
+        for features in features_array:
+            try :
+                comment_grade = objects_dict[features.id]
+            except KeyError:
+                take_avg += 1
+                comment_grade = mean_value
+            
+            features.comments = comment_grade
+            
+            
+    print("Comment grade not found for {0} posts".format(take_avg))
     
     return features_array
 
@@ -178,7 +209,7 @@ def combine_all_features():
     
     features_array = comments_feature(features_array)
     
-    features_array = keywords_feature(features_array)
+    # features_array = keywords_feature(features_array)
     
     index = 10
     
@@ -188,7 +219,7 @@ def combine_all_features():
     print(features_array[index].objects)
     print("Pattern?", features_array[index].pattern)
     print(features_array[index].comments)
-    print(features_array[index].keywords)
+    # print(features_array[index].keywords)
 
     return features_array
 
