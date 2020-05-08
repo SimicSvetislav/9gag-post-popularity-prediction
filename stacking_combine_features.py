@@ -131,13 +131,22 @@ def get_sentiment_predictions(features_array):
     with open("stacking_pred_sentiment.csv", 'r', newline='') as images_pred_file:
         lines = list(csv.reader(images_pred_file))[1:]
         
+        # Calculate average
+        np_lines = np.array(lines)
+        
+        np_lines_values = np_lines[:, 1]
+    
+        mean_sentiment = np.mean(np_lines_values.astype(np.float))
+        
+        print("Mean sentiment for comments :", mean_sentiment) 
+        
         objects_dict = {}
         
         for line in lines:
             objects_dict[line[0]] = line[2]
             
-        to_delete = []
-            
+        # to_delete = []
+        
         for features in features_array:
             try:
                 detection_feature_vector = objects_dict[features.id]
@@ -145,10 +154,11 @@ def get_sentiment_predictions(features_array):
                 features.sentiment_pred = detection_feature_vector
             
             except:
-                to_delete.append(features)
+                features.sentiment_pred = mean_sentiment
+                # to_delete.append(features)
             
-        for del_feature in to_delete:
-            features_array.remove(del_feature)
+        # for del_feature in to_delete:
+        #    features_array.remove(del_feature)
             
     
     return features_array

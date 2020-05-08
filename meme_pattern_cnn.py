@@ -18,8 +18,6 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 import skimage
 
-import matplotlib.pyplot as plt
-
 import csv
 from pathlib import Path
 from math import ceil
@@ -40,6 +38,8 @@ def get_labels(file='metadata.csv', evaluation=False):
         dataset = list(lines)
 
         samples = len(dataset)
+        
+        print("Files in metadata.csv :", samples)
     
         if evaluation:
             samples = 2001
@@ -50,6 +50,7 @@ def get_labels(file='metadata.csv', evaluation=False):
             img_path = 'scraped/' + dataset[x][1] + "/" + dataset[x][0]
             path_obj = Path(img_path)
             if not path_obj.is_file():
+                print(path_obj)
                 continue
             return_dict[img_path] = dataset[x][2]
             
@@ -135,6 +136,7 @@ def data_generator(img_files, labels, batch_size, classes):
         batch_num += 1
         yield batch_X, batch_y
 
+'''
 def visualize(hist):
     
     try:
@@ -167,6 +169,7 @@ def visualize(hist):
         plt.style.use(['classic'])
     except:
         print("Error occured while plotting histogram")
+'''
 
 def train_network():
     
@@ -355,7 +358,7 @@ def detect_patterns_posts():
         
     
 if __name__ == "__main__":
-    # train_network()
+    train_network() 
     # evaluate()
     # predict_pattern('scraped/' + image_name)
-    detect_patterns_posts() 
+    # detect_patterns_posts() 

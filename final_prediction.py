@@ -29,6 +29,10 @@ MAX_DEPTH = 5
 USE_DATA = ['objects', 'pattern', 'comments']
 # USE_DATA = []
 
+# Database features
+# using_features = ['comments count', 'section', 'type']
+using_features = ['type', 'comments count']
+
 def multi_linear_regression(X_train, X_test, y_train, y_test):
     
     print("****** MULTIVARIABLE LINEAR REGRESSION ******", end="\n\n")
@@ -283,7 +287,7 @@ if __name__=="__main__":
     
     # Database features
     # using_features = ['comments count', 'section', 'type']
-    using_features = ['type']
+    using_features = ['type', 'comments count']
     
     used_features = using_features.copy()
         
@@ -316,7 +320,7 @@ if __name__=="__main__":
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     
-    if len(X) != 6007:
+    if len(X) != 6007 and len(X) != 2905:
         raise
 
     with open('predictions.csv', 'w', newline='') as results_file:
@@ -347,5 +351,6 @@ if __name__=="__main__":
     with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
+        writer.writerow(["Samples", len(X)])
         writer.writerow([])
     

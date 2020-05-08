@@ -10,6 +10,8 @@ import pandas as pd
 
 import csv
 
+import stacking_combine_features
+
 def random_forest_prediction_opt(X, y, ids, output_file, on_what):
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
@@ -76,7 +78,7 @@ def prediction_objects():
     
     y = dataset['score'].values
     
-    if len(X) != 6007:
+    if len(X) != 6007 and len(X) != 2905:
         raise
     
     output_file = 'stacking_pred_obj.csv'
@@ -89,12 +91,47 @@ def prediction_objects():
     random_forest_prediction_opt(X, y, ids, output_file, 'images')
    
     
-def prediction_sentiment():
-    dataset = pd.read_csv('sentiment.csv')
+def prepare_scores():
     
-    X = dataset[['very positive', 'positive', 
+    ds_v2 = pd.read_csv('features_complete_v2.csv')
+    
+    scores_dict = {}
+    
+    for index, row in ds_v2.iterrows():
+        scores_dict[row['id']] = row['score']
+    
+    ds_sent = pd.read_csv('percentage_sentiment_average.csv')
+    
+    
+    not_found = 0
+    
+    with open('percentage_sentiment_average_with_scores.csv', 'w', newline='') as out_file:
+    
+        writer = csv.writer(out_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        writer.writerow(['id', 'very_positive', 'positive', 'neutral',
+                         'negative', 'very_negative', 'score'])
+        
+        for index, row in ds_sent.iterrows():
+            try:
+                writer.writerow([row['id'], row['very_positive'], 
+                                 row['positive'], row['neutral'], 
+                                 row['negative'],row['very_negative'],
+                                 scores_dict[row['id']]])
+            except:
+                not_found += 1
+    
+    print("Not found :", not_found)
+
+def prediction_sentiment():
+    
+    prepare_scores()
+    
+    dataset = pd.read_csv('percentage_sentiment_average_with_scores.csv')
+    
+    X = dataset[['very_positive', 'positive', 
                  'neutral',
-                 'negative', 'very negative'
+                 'negative', 'very_negative'
                  ]].values
     
     ids = dataset['id'].values
@@ -103,7 +140,7 @@ def prediction_sentiment():
     
     y = dataset['score'].values
     
-    if len(X) != 6007:
+    if len(X) != 6007 and len(X) != 2905:
         raise
     
     output_file = 'stacking_pred_sentiment.csv'
@@ -130,7 +167,7 @@ def prediction_keywords():
     
     y = dataset['score'].values
     
-    if len(X) != 6007:
+    if len(X) != 6007 and len(X) != 2905:
         raise
     
     output_file = 'stacking_pred_keywords.csv'
@@ -145,8 +182,8 @@ def prediction_keywords():
 
 if __name__=="__main__":
     
-    prediction_objects()
+    # prediction_objects()
     
-    # prediction_sentiment()
+    prediction_sentiment()
     
     # prediction_keywords()

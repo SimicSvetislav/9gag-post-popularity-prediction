@@ -155,11 +155,11 @@ def pattern_feature(features_array):
             
     return features_array
 
-def comments_feature(features_array):
+def comments_feature(features_array, missing):
     
     take_avg = 0
     
-    with open("all_avg_sent_per_post.csv", 'r', newline='') as comments_file:
+    with open("normalized_average_sentiment.csv", 'r', newline='') as comments_file:
         lines = list(csv.reader(comments_file))[1:]
         
         # Calculate average
@@ -174,18 +174,32 @@ def comments_feature(features_array):
         objects_dict = {}
         
         for line in lines:
-            objects_dict[line[0]] = int(line[1])
+            objects_dict[line[0]] = float(line[1])
             
+        to_delete = []
         
         for features in features_array:
             try :
                 comment_grade = objects_dict[features.id]
             except KeyError:
+                
                 take_avg += 1
-                comment_grade = mean_value
+                
+                comment_grade = 0
+                
+                if missing == 1:
+                    comment_grade = mean_value
+                elif missing == 2:
+                    pass
+                elif missing == -1:
+                    to_delete.append(features)    
+                else:
+                    raise
             
             features.comments = comment_grade
             
+        for del_feature in to_delete:
+            features_array.remove(del_feature)
             
     print("Comment grade not found for {0} posts".format(take_avg))
     
@@ -207,7 +221,7 @@ def combine_all_features():
     
     features_array = pattern_feature(features_array)
     
-    features_array = comments_feature(features_array)
+    features_array = comments_feature(features_array, 2)
     
     # features_array = keywords_feature(features_array)
     
