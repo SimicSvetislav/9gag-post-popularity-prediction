@@ -236,7 +236,7 @@ def train_network():
 
     print("loss={:.4f}, accuracy: {:.4f}%".format(loss,accuracy * 100))
     
-    visualize(hist)
+    # visualize(hist)
     
 
 def evaluate():

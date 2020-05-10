@@ -1,0 +1,11 @@
+Baseline,0.112,0.0244,0.1561,0.0,"type, comments count, objects, pattern, comments",nan
+Linear regression,0.1049,0.0219,0.1478,0.0721,"type, comments count, objects, pattern, comments",0.3739
+Elastic net,0.1067,0.0221,0.1487,0.0611,"type, comments count, objects, pattern, comments",0.5383
+Elastic net opt,0.1061,0.0219,0.148,0.0698,"type, comments count, objects, pattern, comments",0.4519
+SVR,0.0951,0.0185,0.1362,0.213,"type, comments count, objects, pattern, comments",0.5285
+SVR opt,0.0982,0.0189,0.1376,0.196,"type, comments count, objects, pattern, comments",0.5178
+Random forest,0.0927,0.0208,0.1443,0.1163,"type, comments count, objects, pattern, comments",0.4959
+Random forest opt,0.0857,0.0175,0.1324,0.2563,"type, comments count, objects, pattern, comments",0.5573
+Voting,0.0948,0.0188,0.137,0.2027,"type, comments count, objects, pattern, comments",0.5675
+Samples,6007
+
