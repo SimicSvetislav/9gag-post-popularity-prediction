@@ -7,9 +7,11 @@ import numpy as np
 
 import csv
 
+from math import log
+
 class Features:
     
-    def __init__(self, post_id, comments_count, section, post_type, score, objects, pattern, keywords, comments):
+    def __init__(self, post_id, comments_count, section, post_type, score, objects, pattern, image_text, keywords, comments):
         self.id = post_id
         self.comments_count = comments_count
         
@@ -30,6 +32,7 @@ class Features:
             raise
         
         self.score = score
+        self.log_score = log(score+1)
         
         self.objects = objects
         self.pattern = pattern
@@ -48,14 +51,16 @@ class Features:
         ret_list.append(self.type)
         ret_list.extend(disassemble_binary(self.objects))
         ret_list.append(self.pattern)
+        ret_list.append(self.image_text)
         ret_list.append(self.comments)
         # ret_list.extend(disassemble_binary2(self.keywords))
         ret_list.append(self.score)
+        ret_list.append(self.log_score)
         
         # print(ret_list)
         
         
-        if len(ret_list) != 22:
+        if len(ret_list) != 24:
             raise
         
         return ret_list
@@ -65,11 +70,11 @@ headers = ['id', 'comments count', 'section', 'type',
            'person', 'people', 'cat', 'dog', 'other animal', 'poster', 
            'clothing', 'car', 'toy', 'tree', 'glasses', 'building', 
            'electronic device', 'airplane', 'guitar',
-           'pattern', 'comments',
+           'pattern', 'image_text', 'comments',
            # Keywords
            # 'kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 
            # 'kw_6', 'kw_7', 'kw_8', 'kw_9', 'kw_10', 
-           'score']
+           'score', 'log_score']
 
 def database_features():
     
@@ -96,7 +101,9 @@ def database_features():
         
             for row in records:
                 score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
-                features = Features(row[0], row[1], row[2], row[3], score, None, None, None, None)
+                # total_votes = int(row[5]) + int(row[4])
+                # score = int(row[5]) / total_votes if total_votes != 0 else 0.5
+                features = Features(row[0], row[1], row[2], row[3], score, None, None, None, None, None)
                 features_array.append(features)
                 
         except Error as e:
@@ -149,10 +156,31 @@ def pattern_feature(features_array):
             objects_dict[line[0]] = int(line[2])
             
         for features in features_array:
-            detection_feature_vector = objects_dict[features.id]
+            pattern_feature = objects_dict[features.id]
                 
-            features.pattern = detection_feature_vector
+            features.pattern = pattern_feature
             
+    return features_array
+
+def image_text_feature(features_array):
+    
+    
+    with open('notebooks/image_text.csv', 'r', newline='') as image_text_file:
+        
+        lines = list(csv.reader(image_text_file))[1:]
+        
+        objects_dict = {}
+        
+        for line in lines:
+            # 2 - text length; 3 - words
+            print(line[2])
+            objects_dict[line[0].split('.')[0]] = int(line[2])
+            
+        for features in features_array:
+            image_text_len = objects_dict[features.id]
+                
+            features.image_text = image_text_len
+    
     return features_array
 
 def comments_feature(features_array, missing):
@@ -221,6 +249,8 @@ def combine_all_features():
     
     features_array = pattern_feature(features_array)
     
+    features_array = image_text_feature(features_array)
+    
     features_array = comments_feature(features_array, 2)
     
     # features_array = keywords_feature(features_array)
@@ -239,7 +269,7 @@ def combine_all_features():
 
 def write_all_features(features_array):
     
-    with open('features_complete_v2.csv', 'w', newline='') as features_file:
+    with open('features_complete_v3.csv', 'w', newline='') as features_file:
         
         writer = csv.writer(features_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         

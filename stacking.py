@@ -63,20 +63,20 @@ def random_forest_prediction_opt(X, y, ids, output_file, on_what):
     
 def prediction_objects():
     
-    dataset = pd.read_csv('features_complete_v2.csv')
+    dataset = pd.read_csv('features_complete_v3.csv')
     
     X = dataset[['person', 'people', 'cat', 'dog', 'other animal', 'poster', 
                  # 'clothing', 
                  'car', 'toy', 'tree', 'glasses', 
                  'building', 'electronic device', 'airplane', 'guitar',
                  # Pattern included
-                 'pattern']].values
+                 'pattern', 'image_text']].values
     
     ids = dataset['id'].values
     
     print("Data shape :", X.shape)
     
-    y = dataset['score'].values
+    y = dataset['log_score'].values
     
     if len(X) != 6007 and len(X) != 2905:
         raise

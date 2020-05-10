@@ -1,0 +1,22 @@
+Baseline,10.0381,207.8135,14.4157,-0.0561,"type, comments count, objects, pattern, image_text, comments",nan
+Linear regression,9.6062,171.6999,13.1034,0.0917,"type, comments count, objects, pattern, image_text, comments",0.4078
+Elastic net,9.5614,170.9973,13.0766,0.0954,"type, comments count, objects, pattern, image_text, comments",0.4551
+Elastic net opt,9.5664,171.0497,13.0786,0.0951,"type, comments count, objects, pattern, image_text, comments",0.4626
+SVR,8.0796,148.4487,12.184,0.2147,"type, comments count, objects, pattern, image_text, comments",0.615
+SVR opt,7.9749,148.1529,12.1718,0.2163,"type, comments count, objects, pattern, image_text, comments",0.6068
+Random forest,9.2161,162.9923,12.7668,0.1377,"type, comments count, objects, pattern, image_text, comments",0.5285
+Random forest opt,8.2862,135.7332,11.6505,0.282,"type, comments count, objects, pattern, image_text, comments",0.6066
+Voting,8.7199,144.7177,12.0299,0.2344,"type, comments count, objects, pattern, image_text, comments",0.6326
+Samples,6007
+
+Baseline,0.7607,0.9055,0.9516,-0.0267,"type, comments count, objects, pattern, image_text, comments",nan
+Linear regression,0.7074,0.7584,0.8709,0.1188,"type, comments count, objects, pattern, image_text, comments",0.4163
+Elastic net,0.7116,0.7644,0.8743,0.1118,"type, comments count, objects, pattern, image_text, comments",0.4856
+Elastic net opt,0.7083,0.758,0.8707,0.1192,"type, comments count, objects, pattern, image_text, comments",0.454
+SVR,0.5899,0.5372,0.7329,0.3758,"type, comments count, objects, pattern, image_text, comments",0.6131
+SVR opt,0.5799,0.5385,0.7338,0.3743,"type, comments count, objects, pattern, image_text, comments",0.6066
+Random forest,0.6126,0.6025,0.7762,0.2999,"type, comments count, objects, pattern, image_text, comments",0.5689
+Random forest opt,0.5746,0.52,0.7211,0.3958,"type, comments count, objects, pattern, image_text, comments",0.6174
+Voting,0.6334,0.6098,0.7809,0.2914,"type, comments count, objects, pattern, image_text, comments",0.6282
+Samples,6007
+

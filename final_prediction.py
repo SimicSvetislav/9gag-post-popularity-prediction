@@ -15,8 +15,8 @@ import scipy.stats as stats
 
 import csv
 
-features_file = 'features_complete_v2.csv'
-results_file_name = 'results_new.csv'
+features_file = 'features_complete_v3.csv'
+results_file_name = 'results_v3.csv'
 
 ALPHA = 0.1
 L1_RATIO = 0.7
@@ -26,7 +26,7 @@ MAX_DEPTH = 5
 
 # When using all data
 # USE_DATA = ['objects', 'pattern', 'comments', 'keywords']
-USE_DATA = ['objects', 'pattern', 'comments']
+USE_DATA = ['objects', 'pattern', 'image_text', 'comments']
 # USE_DATA = []
 
 # Database features
@@ -192,11 +192,15 @@ def baseline_prediction(y_test):
     
     print("******************* BASELINE *****************", end="\n\n")
     
-    y_mean = np.mean(y_test)
+    # y_mean = np.mean(y_test)
     
-    print("Mean score :", y_mean, end="\n\n")
+    # print("Mean score :", y_mean, end="\n\n")
     
-    y_pred = [y_mean] * len(y_test)
+    y_median = np.median(y_test)
+    
+    # y_pred = [y_mean] * len(y_test)
+    
+    y_pred = [y_median] * len(y_test)
     
     evaluate('Baseline', y_test, y_pred)
     
@@ -249,15 +253,18 @@ def evaluate(method_name, y_test, y_pred):
     rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
     r2 = metrics.r2_score(y_test, y_pred)
     
+    rho, pval = stats.spearmanr(y_pred, y_test)
+    
     print('Mean Absolute Error:', mae)  
     print('Mean Squared Error:', mse)  
     print('Root Mean Squared Error:', rmse) 
     print("r^2 on test data :", r2)
+    print("Spearman rank :", rho)
     
     with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
-        writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", "")])
+        writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", ""), round(rho,4)])
    
     with open('predictions.csv', 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -304,6 +311,10 @@ if __name__=="__main__":
     if 'pattern' in USE_DATA:
         print('PATTERN ', end='')
         using_features.append('pattern')
+        
+    if 'image_text' in USE_DATA:
+        print('IMAGE_TEXT ', end='')
+        using_features.append('image_text')
     
     if 'comments' in USE_DATA:
         print('COMMENTS ', end='')
@@ -316,7 +327,11 @@ if __name__=="__main__":
     print("\nUsing features :", using_features)
     X = dataset[using_features].values
     
-    y = dataset['score'].values
+    label_feature = 'log_score'
+    
+    y = dataset[label_feature].values
+    
+    print("\nLabel :", label_feature)
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     

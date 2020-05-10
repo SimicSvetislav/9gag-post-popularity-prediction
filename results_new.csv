@@ -190,3 +190,63 @@ Random forest opt,8.2884,135.1143,11.6239,0.2852,"type, comments count, objects,
 Voting,8.8658,149.9511,12.2455,0.2067,"type, comments count, objects, pattern, comments"
 Samples,6007
 
+Baseline,10.4095,196.7784,14.0278,0.0,"type, comments count, objects, pattern, comments"
+Linear regression,9.6121,171.8282,13.1083,0.091,"type, comments count, objects, pattern, comments"
+Elastic net,9.5681,171.1577,13.0827,0.0946,"type, comments count, objects, pattern, comments"
+Elastic net opt,9.5883,171.2926,13.0879,0.0938,"type, comments count, objects, pattern, comments"
+SVR,8.0379,148.9777,12.2056,0.2119,"type, comments count, objects, pattern, comments"
+SVR opt,8.01,148.6009,12.1902,0.2139,"type, comments count, objects, pattern, comments"
+Random forest,9.4258,174.1721,13.1974,0.0786,"type, comments count, objects, pattern, comments"
+Random forest opt,8.2864,135.3044,11.632,0.2842,"type, comments count, objects, pattern, comments"
+Voting,8.8649,149.9287,12.2445,0.2069,"type, comments count, objects, pattern, comments"
+Samples,6007
+
+Baseline,10.4095,196.7784,14.0278,0.0,"type, comments count, objects, pattern, comments",nan
+Linear regression,9.6121,171.8282,13.1083,0.091,"type, comments count, objects, pattern, comments",0.4083
+Elastic net,9.5681,171.1577,13.0827,0.0946,"type, comments count, objects, pattern, comments",0.4619
+Elastic net opt,9.604,171.5774,13.0988,0.0923,"type, comments count, objects, pattern, comments",0.4157
+SVR,8.0379,148.9777,12.2056,0.2119,"type, comments count, objects, pattern, comments",0.6108
+Baseline,10.4095,196.7784,14.0278,0.0,"type, comments count, objects, pattern, comments",nan
+Linear regression,9.6121,171.8282,13.1083,0.091,"type, comments count, objects, pattern, comments",0.4083
+Elastic net,9.5681,171.1577,13.0827,0.0946,"type, comments count, objects, pattern, comments",0.4619
+Elastic net opt,9.585,171.2324,13.0856,0.0942,"type, comments count, objects, pattern, comments",0.4364
+SVR,8.0379,148.9777,12.2056,0.2119,"type, comments count, objects, pattern, comments",0.6108
+SVR opt,8.01,148.6009,12.1902,0.2139,"type, comments count, objects, pattern, comments",0.6031
+Random forest,9.388,173.4708,13.1708,0.0823,"type, comments count, objects, pattern, comments",0.513
+Random forest opt,8.3072,136.2585,11.673,0.2792,"type, comments count, objects, pattern, comments",0.5987
+Voting,8.8081,147.8947,12.1612,0.2176,"type, comments count, objects, pattern, comments",0.6107
+Samples,6007
+
+Baseline,10.4095,196.7784,14.0278,0.0,"type, comments count, objects, pattern, comments",nan
+Linear regression,9.6121,171.8282,13.1083,0.091,"type, comments count, objects, pattern, comments",0.4083
+Elastic net,9.5681,171.1577,13.0827,0.0946,"type, comments count, objects, pattern, comments",0.4619
+Elastic net opt,9.5801,171.1827,13.0837,0.0944,"type, comments count, objects, pattern, comments",0.4454
+SVR,8.0379,148.9777,12.2056,0.2119,"type, comments count, objects, pattern, comments",0.6108
+SVR opt,8.01,148.6009,12.1902,0.2139,"type, comments count, objects, pattern, comments",0.6031
+Random forest,9.3642,173.6412,13.1773,0.0814,"type, comments count, objects, pattern, comments",0.5121
+Random forest opt,8.305,136.0523,11.6641,0.2803,"type, comments count, objects, pattern, comments",0.6004
+Voting,8.8151,147.9664,12.1641,0.2172,"type, comments count, objects, pattern, comments",0.6093
+Samples,6007
+
+Baseline,10.4095,196.7784,14.0278,0.0,"type, comments count, objects, pattern, comments",nan
+Linear regression,9.6121,171.8282,13.1083,0.091,"type, comments count, objects, pattern, comments",0.4083
+Elastic net,9.5681,171.1577,13.0827,0.0946,"type, comments count, objects, pattern, comments",0.4619
+Elastic net opt,9.5742,171.1048,13.0807,0.0948,"type, comments count, objects, pattern, comments",0.4458
+SVR,8.0379,148.9777,12.2056,0.2119,"type, comments count, objects, pattern, comments",0.6108
+SVR opt,8.01,148.6009,12.1902,0.2139,"type, comments count, objects, pattern, comments",0.6031
+Random forest,9.3456,172.2459,13.1242,0.0888,"type, comments count, objects, pattern, comments",0.5175
+Random forest opt,8.2907,135.2318,11.6289,0.2846,"type, comments count, objects, pattern, comments",0.6046
+Voting,8.8659,149.9459,12.2452,0.2068,"type, comments count, objects, pattern, comments",0.5958
+Samples,6007
+
+Baseline,10.0381,207.8135,14.4157,-0.0561,"type, comments count, objects, pattern, comments",nan
+Linear regression,9.6121,171.8282,13.1083,0.091,"type, comments count, objects, pattern, comments",0.4083
+Elastic net,9.5681,171.1577,13.0827,0.0946,"type, comments count, objects, pattern, comments",0.4619
+Elastic net opt,9.5773,171.1654,13.083,0.0945,"type, comments count, objects, pattern, comments",0.452
+SVR,8.0379,148.9777,12.2056,0.2119,"type, comments count, objects, pattern, comments",0.6108
+SVR opt,8.01,148.6009,12.1902,0.2139,"type, comments count, objects, pattern, comments",0.6031
+Random forest,9.3872,173.9576,13.1893,0.0797,"type, comments count, objects, pattern, comments",0.5141
+Random forest opt,8.2869,135.1801,11.6267,0.2849,"type, comments count, objects, pattern, comments",0.6045
+Voting,8.8661,149.9709,12.2463,0.2066,"type, comments count, objects, pattern, comments",0.5974
+Samples,6007
+
