@@ -140,7 +140,7 @@ def detection_features(features_array):
     return features_array
 
 def pattern_feature(features_array):
-    with open("patterns.csv", 'r', newline='') as patterns_file:
+    with open("patterns_v3.csv", 'r', newline='') as patterns_file:
         lines = list(csv.reader(patterns_file))
         
         objects_dict = {}

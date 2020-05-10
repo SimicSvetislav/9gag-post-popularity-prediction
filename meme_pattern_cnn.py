@@ -27,7 +27,7 @@ from os import listdir
 
 image_name = ''
 BATCH_SIZE = 32
-EPOCHS = 5
+EPOCHS = 10
 
 def get_labels(file='metadata.csv', evaluation=False):
     
@@ -236,7 +236,7 @@ def train_network():
 
     print("loss={:.4f}, accuracy: {:.4f}%".format(loss,accuracy * 100))
     
-    visualize(hist)
+    # visualize(hist)
     
 
 def evaluate():
@@ -350,7 +350,7 @@ def detect_patterns_posts():
     
     print("Writing patterns data...")
     
-    with open("patterns.csv", 'a', newline='') as patterns_file:
+    with open("patterns_v3.csv", 'a', newline='') as patterns_file:
         writer = csv.writer(patterns_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         for i in range(len(ids)):
@@ -358,7 +358,7 @@ def detect_patterns_posts():
         
     
 if __name__ == "__main__":
-    train_network() 
+    # train_network() 
     # evaluate()
     # predict_pattern('scraped/' + image_name)
-    # detect_patterns_posts() 
+    detect_patterns_posts() 
