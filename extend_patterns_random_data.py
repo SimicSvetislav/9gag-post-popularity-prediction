@@ -34,7 +34,7 @@ def extend_download():
             cursor.execute(sql_select_Query)
             records = cursor.fetchall()
         
-            limit = -1
+            limit = 1500
         
             
             print("\nPrinting urls")
@@ -72,7 +72,7 @@ def extend_download():
             connection.close()
             print("MySQL connection is closed")
 
-def extend_metadata():
+def extend_metadata(limit=-1):
     
     # total = 0
     
@@ -87,6 +87,11 @@ def extend_metadata():
             
             writer.writerow([file, CATEGORY, CATEGORY_ID])
             
+            limit -= 1
+            
+            if limit == 0:
+                break
+            
             # total += 1
         
     # print(total)
@@ -96,6 +101,6 @@ if __name__=="__main__":
     
     # extend_download()
     
-    extend_metadata()
+    extend_metadata(limit=1500)
     
     pass
