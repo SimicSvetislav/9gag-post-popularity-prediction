@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import csv
+
+'''
+WORDS_LIST = ['get', 'like', 'go', 'make', 'one', 'quarantine', 'good',
+              'time', 
+              # 'wa', 
+              'know', 'day', 'guy', 'see', 'look', 'new',
+              'people', 'right', 'old', 'say', 'year'
+              ]  
+'''
+
+WORDS_LIST_2 = ['get', 'like', 'go', 'make', 'one', 'quarantine', 'time', 
+                'good', 'know', 'day', 'guy', 'see', 'look', 'new', 'people', 
+                'right', 'old', 'say', 'year', 'still']
+
+KEYWORDS_FILE = 'notebooks/keywords.csv'
+OUTPUT_FILE = 'keywords_encoded.csv'
+
 # Dobija niz nizova reci
 def encode(words_list):
     
@@ -45,7 +63,7 @@ def disassemble_binary(bin_number, no_encodings):
         
         bin_number = bin_number>>1 
     
-    # print(bin_list)
+    # print(bin_list) =
         
     if len(bin_list) != no_encodings:
         raise
@@ -69,13 +87,70 @@ def process_encoding(words_list):
     
     return encodings_list
 
-if __name__=="__main__":
-    s1 = [['cat', 'dog'], ['cat', 'bird'], ['monkey']]
+def make_encoding_dictionary(words):
+    
+    encoding_dictionary = {}
+    
+    mask = 0b1
+    
+    for word in words:
+        encoding_dictionary[word] = mask
+        mask = mask << 1
+        
+    return encoding_dictionary
+    
 
-    encodings_list = process_encoding(s1)
+def encode_keywords(post_keywords, encoding_dictionary):
     
-    print(encodings_list)
+    encoding = 0b0
     
-    for encoding in encodings_list:
-        print(encoding)
+    for keyword in post_keywords:
+        if keyword in encoding_dictionary:
+            encoding = encoding | encoding_dictionary[keyword]  
+        
+    return encoding
+
+def encode_all(keywords_file_path=KEYWORDS_FILE, output_file_path=OUTPUT_FILE):
+    
+    encoding_dictionary = make_encoding_dictionary(WORDS_LIST_2)
+    
+    results_dict = {}
+    
+    with open(keywords_file_path, 'r') as keywords_file:
+        lines = list(csv.reader(keywords_file))
+        
+        for line in lines:
+            
+            encoding =  encode_keywords(line[3:], encoding_dictionary)
+            
+            results_dict[line[0]] = encoding
+            
+    
+    with open(output_file_path, 'w', newline='') as output_file:
+        writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    
+        writer.writerow(['id', 'keywords_encoding'])
+        
+        for key, value in results_dict.items():
+             writer.writerow([key, format(value,'#021b')])
+    
+
+if __name__=="__main__":
+    # s1 = [['cat', 'dog'], ['cat', 'bird'], ['monkey']]
+
+    # encodings_list = process_encoding(s1)
+    
+    '''
+    encoding_dictionary = make_encoding_dictionary(words_list)
+    
+    print("Dictionary length :", len(encoding_dictionary))
+    
+    for key, value in encoding_dictionary.items():
+        print(format(value, '#021b'))
+        
+    encoding = encode_keywords(['go', 'hello', 'old', 'friend', 'make', 'me', 'coffee', 'this', 'year'], encoding_dictionary)
+    print(format(encoding, '#021b'))
+    '''
+    
+    encode_all(KEYWORDS_FILE, OUTPUT_FILE)
     

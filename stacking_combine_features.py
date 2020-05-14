@@ -7,6 +7,8 @@ import numpy as np
 
 import csv
 
+import math
+
 class Features:
     
     def __init__(self, post_id, comments_count, post_type, score, image_pred, sentiment_pred, keywords_pred):
@@ -22,6 +24,7 @@ class Features:
             raise
         
         self.score = score
+        self.log_score = math.log(score+1)
         
         self.image_pred = image_pred
         
@@ -43,11 +46,12 @@ class Features:
         ret_list.append(self.keywords_pred)
         
         ret_list.append(self.score)
+        ret_list.append(self.log_score)
                 
         # print(ret_list)
         
         
-        if len(ret_list) != 7:
+        if len(ret_list) != 8:
             raise
         
         return ret_list
@@ -56,7 +60,8 @@ headers = ['id', 'comments count', 'type',
            'image_pred',
            'sentiment_pred',
            'keywords_pred',
-           'score']
+           'score',
+           'log_score']
 
 def database_features():
     
@@ -82,7 +87,8 @@ def database_features():
             records = cursor.fetchall()
         
             for row in records:
-                score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
+                # score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
+                score = int(row[5]) / (int(row[4]+1))
                 features = Features(row[0], row[1], row[3], score, None, None, None)
                 features_array.append(features)
                 
@@ -165,8 +171,8 @@ def get_sentiment_predictions(features_array):
 
 def get_keywords_predictions(features_array):
     
-    with open("stacking_pred_keywords.csv", 'r', newline='') as images_pred_file:
-        lines = list(csv.reader(images_pred_file))[1:]
+    with open("stacking_pred_keywords.csv", 'r', newline='') as keywords_pred_file:
+        lines = list(csv.reader(keywords_pred_file))[1:]
         
         objects_dict = {}
         
@@ -205,6 +211,7 @@ def combine_all_features():
     print(len(features_array))
     print(features_array[index].id)
     print(features_array[index].score)
+    print(features_array[index].log_score)
     print(features_array[index].comments_count)
     print(features_array[index].image_pred)
     print(features_array[index].sentiment_pred)

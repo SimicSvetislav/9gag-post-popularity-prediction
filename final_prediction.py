@@ -15,6 +15,8 @@ import scipy.stats as stats
 
 import csv
 
+import encode_words as ew
+
 features_file = 'features_complete_v3.csv'
 results_file_name = 'results_v3.csv'
 
@@ -26,7 +28,7 @@ MAX_DEPTH = 5
 
 # When using all data
 # USE_DATA = ['objects', 'pattern', 'comments', 'keywords']
-USE_DATA = ['objects', 'pattern', 'image_text', 'comments']
+USE_DATA = ['objects', 'pattern', 'image_text', 'comments', 'keywords']
 # USE_DATA = []
 
 # Database features
@@ -69,7 +71,7 @@ def elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2):
                   'l1_ratio': stats.expon(0, 1)}
     
     enet = ElasticNet()
-    model_cv = RandomizedSearchCV(enet, param_dist, cv=10, n_iter=50, 
+    model_cv = RandomizedSearchCV(enet, param_dist, cv=10, n_iter=100, 
                                   scoring='r2', n_jobs=4, verbose=1
                               )
     
@@ -126,14 +128,14 @@ def svr_regression_opt(X_train, X_test, y_train, y_test):
     
     svr = SVR(kernel='rbf')
     
-    Cs = [0.001, 0.01, 0.1, 1, 10, 100, 200]
-    gammas = [0.0005, 0.001, 0.01, 0.1, 1, 10, 100]
+    Cs = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+    gammas = [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]
     # Reduced parameter search
     # Cs = [100, 200, 400]
     # gammas = [0.0001, 0.0005, 0.001, 1]
     param_grid = {'C': Cs, 'gamma' : gammas}
     
-    regressor = GridSearchCV(svr, param_grid, cv=5,
+    regressor = GridSearchCV(svr, param_grid, cv=10,
                               scoring='r2', n_jobs=4, verbose=1)
     
     regressor.fit(X_train, y_train)
@@ -146,7 +148,14 @@ def svr_regression_opt(X_train, X_test, y_train, y_test):
     
     print("\n*********************************************", end="\n\n")
 
+    c = regressor.best_params_['C']
+    gamma = regressor.best_params_['gamma']
     
+    # print('C :', c)
+    # print('Gamma :', gamma)
+    
+    return c, gamma
+
 
 def random_forest_prediction(X_train, X_test, y_train, y_test):
     
@@ -169,7 +178,7 @@ def random_forest_prediction_opt(X_train, X_test, y_train, y_test):
                   'max_depth': range(2,50)}
 
     forest = RandomForestRegressor()
-    rscv = RandomizedSearchCV(forest, param_dist, cv=10, n_iter=50, 
+    rscv = RandomizedSearchCV(forest, param_dist, cv=10, n_iter=100, 
                               scoring='r2', n_jobs=4, verbose=1)
     
     rscv.fit(X_train, y_train)
@@ -206,17 +215,23 @@ def baseline_prediction(y_test):
     
     print("\n*********************************************", end="\n\n")
 
-def vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth):
+def vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth, c, gamma):
     
     print("******************* VOTING ******************", end="\n\n")
     
     # forest = RandomForestRegressor(n_estimators=242, max_depth=5)
     # elasic_net = ElasticNet(alpha=0.141, l1_ratio=1.0)
     forest = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth)
-    elasic_net = ElasticNet(alpha=alpha, l1_ratio=l1_ratio)
-    linear_regressor = LinearRegression()
+    # elasic_net = ElasticNet(alpha=alpha, l1_ratio=l1_ratio)
+    # linear_regressor = LinearRegression()
+    svr = SVR(kernel='rbf', C=c, gamma=gamma)
     
-    voting_regressor = VotingRegressor(estimators=[('rf', forest), ('enet', elasic_net), ('lr', linear_regressor)])
+    voting_regressor = VotingRegressor(estimators=[
+        ('rf', forest), 
+        # ('enet', elasic_net), 
+        # ('lr', linear_regressor),
+        ('svr', svr)
+        ])
     voting_regressor = voting_regressor.fit(X, y)
     
     y_pred = voting_regressor.predict(X_test)
@@ -260,6 +275,7 @@ def evaluate(method_name, y_test, y_pred):
     print('Root Mean Squared Error:', rmse) 
     print("r^2 on test data :", r2)
     print("Spearman rank :", rho)
+    print("P-value :", pval)
     
     with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -322,7 +338,7 @@ if __name__=="__main__":
     
     if 'keywords' in USE_DATA:
         print('KEYWORDS ', end='')
-        using_features.extend(['kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 'kw_6', 'kw_7', 'kw_8', 'kw_9', 'kw_10'])
+        using_features.extend(ew.WORDS_LIST_2)
     
     print("\nUsing features :", using_features)
     X = dataset[using_features].values
@@ -353,13 +369,13 @@ if __name__=="__main__":
     
     svr_regression(X_train, X_test, y_train, y_test)
     
-    svr_regression_opt(X_train, X_test, y_train, y_test)
+    c, gamma = svr_regression_opt(X_train, X_test, y_train, y_test)
     
     random_forest_prediction(X_train, X_test, y_train, y_test)
         
     n_estimators, max_depth = random_forest_prediction_opt(X_train, X_test, y_train, y_test)
     
-    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth)
+    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth, c, gamma)
 
     # auto_prediction(X_train, X_test, y_train, y_test)
     

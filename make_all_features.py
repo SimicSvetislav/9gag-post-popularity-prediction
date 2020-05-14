@@ -9,6 +9,10 @@ import csv
 
 from math import log
 
+import encode_words as ew
+
+output_file = 'features_complete_v3.csv'
+
 class Features:
     
     def __init__(self, post_id, comments_count, section, post_type, score, objects, pattern, image_text, keywords, comments):
@@ -37,7 +41,7 @@ class Features:
         self.objects = objects
         self.pattern = pattern
         
-        # self.keywords = keywords
+        self.keywords = None
         self.comments = comments        
     
     def get_as_list(self):
@@ -49,18 +53,17 @@ class Features:
         ret_list.append(self.comments_count)
         ret_list.append(self.section)
         ret_list.append(self.type)
-        ret_list.extend(disassemble_binary(self.objects))
+        ret_list.extend(disassemble_binary(self.objects, 15))
         ret_list.append(self.pattern)
         ret_list.append(self.image_text)
         ret_list.append(self.comments)
-        # ret_list.extend(disassemble_binary2(self.keywords))
+        ret_list.extend(disassemble_binary(self.keywords, len(ew.WORDS_LIST_2)))
         ret_list.append(self.score)
         ret_list.append(self.log_score)
         
         # print(ret_list)
         
-        
-        if len(ret_list) != 24:
+        if len(ret_list) != 24 + len(ew.WORDS_LIST_2):
             raise
         
         return ret_list
@@ -71,10 +74,14 @@ headers = ['id', 'comments count', 'section', 'type',
            'clothing', 'car', 'toy', 'tree', 'glasses', 'building', 
            'electronic device', 'airplane', 'guitar',
            'pattern', 'image_text', 'comments',
-           # Keywords
-           # 'kw_1', 'kw_2', 'kw_3', 'kw_4', 'kw_5', 
-           # 'kw_6', 'kw_7', 'kw_8', 'kw_9', 'kw_10', 
-           'score', 'log_score']
+           ]
+
+# Keywords
+headers.extend(ew.WORDS_LIST_2)
+
+headers.extend(['score', 'log_score'])
+
+# print(headers)
 
 def database_features():
     
@@ -101,6 +108,7 @@ def database_features():
         
             for row in records:
                 score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
+                score = int(row[5]) / (int(row[4]+1))
                 # total_votes = int(row[5]) + int(row[4])
                 # score = int(row[5]) / total_votes if total_votes != 0 else 0.5
                 features = Features(row[0], row[1], row[2], row[3], score, None, None, None, None, None)
@@ -173,7 +181,7 @@ def image_text_feature(features_array):
         
         for line in lines:
             # 2 - text length; 3 - words
-            print(line[2])
+            # print(line[2])
             objects_dict[line[0].split('.')[0]] = int(line[2])
             
         for features in features_array:
@@ -235,9 +243,29 @@ def comments_feature(features_array, missing):
 
 def keywords_feature(features_array):
     
-    for features in features_array:
+    not_found = 0
+    
+    with open("keywords_encoded.csv", 'r', newline='') as comments_file:
+        lines = list(csv.reader(comments_file))
+        
+        keywords_encoded = {}
+        
+        for line in lines:
+            keywords_encoded[line[0]] = line[1]
+        
+        for features in features_array:
                 
-            features.keywords = 0b0000000000
+                if features.id in keywords_encoded:                   
+                    encoding = keywords_encoded[features.id]
+                    
+                else:
+                    encoding = '0'
+                    not_found += 1
+                
+                
+                features.keywords = encoding
+                
+    print("Not found keywords :", not_found)
     
     return features_array
 
@@ -253,7 +281,7 @@ def combine_all_features():
     
     features_array = comments_feature(features_array, 2)
     
-    # features_array = keywords_feature(features_array)
+    features_array = keywords_feature(features_array)
     
     index = 10
     
@@ -269,7 +297,7 @@ def combine_all_features():
 
 def write_all_features(features_array):
     
-    with open('features_complete_v3.csv', 'w', newline='') as features_file:
+    with open(output_file, 'w', newline='') as features_file:
         
         writer = csv.writer(features_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
@@ -277,12 +305,14 @@ def write_all_features(features_array):
         
         for features in features_array:
             writer.writerow(features.get_as_list())
+            
+    print('Features written to file :', output_file)
 
-def disassemble_binary(str_number):
+def disassemble_binary(str_number, number_of_classes):
     
     bin_number = int(str_number, base=2)
     
-    bin_list = [0] * 15
+    bin_list = [0] * number_of_classes
     mask = 0b1
     
     bin_length = bin_number.bit_length()
@@ -299,13 +329,13 @@ def disassemble_binary(str_number):
     
     # print(bin_list)
         
-    if len(bin_list) != 15:
+    if len(bin_list) != number_of_classes:
         raise
     
     return bin_list
 
-
-def disassemble_binary2(bin_number):
+'''
+def disassemble_binary_number(bin_number):
     
     bin_list = [0] * 10
     mask = 0b1
@@ -328,6 +358,7 @@ def disassemble_binary2(bin_number):
         raise
     
     return bin_list
+'''
     
 if __name__=="__main__":
     features_array = combine_all_features()
@@ -337,4 +368,4 @@ if __name__=="__main__":
     
     # disassemble_binary(sample)
     
-    
+    pass
