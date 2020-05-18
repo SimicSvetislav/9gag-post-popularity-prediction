@@ -25,6 +25,8 @@ import random
 
 from os import listdir
 
+import matplotlib.pyplot as plt
+
 image_name = ''
 BATCH_SIZE = 32
 EPOCHS = 10
@@ -45,7 +47,7 @@ def get_labels(file='metadata.csv', evaluation=False):
             samples = 2001
 
         for x in range(1, samples):
-        # for x in range(1, INPUT_SIZE):
+        # for x in range(1, 5000):
         # for x in range(1, len(dataset)):
             img_path = 'scraped/' + dataset[x][1] + "/" + dataset[x][0]
             path_obj = Path(img_path)
@@ -136,40 +138,36 @@ def data_generator(img_files, labels, batch_size, classes):
         batch_num += 1
         yield batch_X, batch_y
 
-'''
+
 def visualize(hist):
     
-    try:
-        train_loss=hist.history['loss']
-        val_loss=hist.history['val_loss']
-        train_acc=hist.history['acc']
-        val_acc=hist.history['val_acc']
-        xc=range(EPOCHS)
-        
-        plt.figure(1,figsize=(7,5))
-        plt.plot(xc,train_loss)
-        plt.plot(xc,val_loss)
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.title('train_loss vs val_loss')
-        plt.grid(True)
-        plt.legend(['train','val'])
-        
-        plt.style.use(['classic'])
-        
-        plt.figure(2,figsize=(7,5))
-        plt.plot(xc,train_acc)
-        plt.plot(xc,val_acc)
-        plt.xlabel('Epochs')
-        plt.ylabel('Accuracy')
-        plt.title('train_acc vs val_acc')
-        plt.grid(True)
-        plt.legend(['train','val'],loc=4)
-        
-        plt.style.use(['classic'])
-    except:
-        print("Error occured while plotting histogram")
-'''
+    train_loss=hist.history['loss']
+    val_loss=hist.history['val_loss']
+    train_acc=hist.history['accuracy']
+    val_acc=hist.history['val_accuracy']
+    xc=range(EPOCHS)
+    
+    plt.figure(1,figsize=(7,5))
+    plt.plot(xc,train_loss)
+    plt.plot(xc,val_loss)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('train_loss vs val_loss')
+    plt.grid(True)
+    plt.legend(['train','val'])
+    
+    plt.style.use(['classic'])
+    
+    plt.figure(2,figsize=(7,5))
+    plt.plot(xc,train_acc)
+    plt.plot(xc,val_acc)
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('train_acc vs val_acc')
+    plt.grid(True)
+    plt.legend(['train','val'],loc=4)
+    
+    plt.style.use(['classic'])
 
 def train_network():
     
@@ -224,6 +222,7 @@ def train_network():
     
     print('Training time: {:.2f}'.format(time.time() - start_time))
     
+    visualize(hist)
     
     new_model_json = new_model.to_json()
     with open("meme_patterns_model.json", "w") as json_file:
@@ -235,8 +234,6 @@ def train_network():
     (loss, accuracy) = new_model.evaluate(X_test, y_test, batch_size=10, verbose=1)
 
     print("loss={:.4f}, accuracy: {:.4f}%".format(loss,accuracy * 100))
-    
-    # visualize(hist)
     
 
 def evaluate():
@@ -358,7 +355,7 @@ def detect_patterns_posts():
         
     
 if __name__ == "__main__":
-    # train_network() 
+    train_network() 
     # evaluate()
     # predict_pattern('scraped/' + image_name)
-    detect_patterns_posts() 
+    # detect_patterns_posts() 
