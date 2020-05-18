@@ -78,3 +78,47 @@ Random forest opt,0.5609,0.4983,0.7059,0.4515,"type, comments count, objects, pa
 Voting,0.5393,0.4617,0.6795,0.4918,"type, comments count, objects, pattern, image_text, comments, keywords",0.6935
 Samples,6007
 
+Baseline,0.7917,0.9602,0.9799,-0.0307,"type, comments count, objects, pattern, image_text, comments, keywords",nan
+Linear regression,0.5775,0.5158,0.7182,0.4322,"type, comments count, objects, pattern, image_text, comments, keywords",0.6607
+Elastic net,0.5791,0.5203,0.7213,0.4273,"type, comments count, objects, pattern, image_text, comments, keywords",0.6592
+Elastic net opt,0.5758,0.5142,0.7171,0.434,"type, comments count, objects, pattern, image_text, comments, keywords",0.6626
+SVR,0.6304,0.6155,0.7846,0.3225,"type, comments count, objects, pattern, image_text, comments, keywords",0.6383
+SVR opt,0.5693,0.5139,0.7168,0.4344,"type, comments count, objects, pattern, image_text, comments, keywords",0.6646
+Random forest,0.596,0.5661,0.7524,0.3769,"type, comments count, objects, pattern, image_text, comments, keywords",0.6239
+Random forest opt,0.561,0.4977,0.7055,0.4522,"type, comments count, objects, pattern, image_text, comments, keywords",0.6612
+Voting,0.5412,0.464,0.6812,0.4893,"type, comments count, objects, pattern, image_text, comments, keywords",0.689
+Samples,6007
+
+Baseline,9.8745,198.4278,14.0864,-0.0563,"type, comments count, objects, pattern, image_text, comments, keywords",nan
+Linear regression,7.9994,127.0465,11.2715,0.3071,"type, comments count, objects, pattern, image_text, comments, keywords",0.6582
+Elastic net,7.9543,126.5247,11.2483,0.3099,"type, comments count, objects, pattern, image_text, comments, keywords",0.6605
+Elastic net opt,7.9625,126.4404,11.2446,0.3104,"type, comments count, objects, pattern, image_text, comments, keywords",0.661
+SVR,9.424,184.9253,13.5987,-0.0086,"type, comments count, objects, pattern, image_text, comments, keywords",0.3947
+SVR opt,7.6158,134.4911,11.597,0.2665,"type, comments count, objects, pattern, image_text, comments, keywords",0.657
+Random forest,8.5029,143.3475,11.9728,0.2181,"type, comments count, objects, pattern, image_text, comments, keywords",0.605
+Random forest opt,7.7827,122.8284,11.0828,0.3301,"type, comments count, objects, pattern, image_text, comments, keywords",0.6546
+Voting,7.4158,122.0255,11.0465,0.3344,"type, comments count, objects, pattern, image_text, comments, keywords",0.678
+Samples,6007
+
+Baseline,0.7917,0.9602,0.9799,-0.0307,"type, comments count, objects, pattern, image_text, comments, keywords",nan
+Linear regression,0.725,0.7805,0.8835,0.1409,"type, comments count, objects, pattern, image_text, comments, keywords",0.4399
+Elastic net,0.7354,0.7991,0.8939,0.1205,"type, comments count, objects, pattern, image_text, comments, keywords",0.5485
+Elastic net opt,0.7253,0.7788,0.8825,0.1428,"type, comments count, objects, pattern, image_text, comments, keywords",0.4805
+SVR,0.5751,0.52,0.7211,0.4277,"type, comments count, objects, pattern, image_text, comments, keywords",0.6518
+SVR opt,0.564,0.5131,0.7163,0.4352,"type, comments count, objects, pattern, image_text, comments, keywords",0.6557
+Random forest,0.5974,0.5705,0.7553,0.3721,"type, comments count, objects, pattern, image_text, comments, keywords",0.6208
+Random forest opt,0.5615,0.4989,0.7063,0.4508,"type, comments count, objects, pattern, image_text, comments, keywords",0.6625
+Voting,0.5503,0.4843,0.6959,0.4669,"type, comments count, objects, pattern, image_text, comments, keywords",0.6758
+Samples,6007
+
+Baseline,0.7917,0.9602,0.9799,-0.0307,"type, comments count, objects, pattern, image_text, comments, keywords",nan
+Linear regression,0.725,0.7805,0.8835,0.1409,"type, comments count, objects, pattern, image_text, comments, keywords",0.4399
+Elastic net,0.7354,0.7991,0.8939,0.1205,"type, comments count, objects, pattern, image_text, comments, keywords",0.5485
+Elastic net opt,0.7264,0.781,0.8837,0.1404,"type, comments count, objects, pattern, image_text, comments, keywords",0.4949
+SVR,0.5751,0.52,0.7211,0.4277,"type, comments count, objects, pattern, image_text, comments, keywords",0.6518
+SVR opt,0.564,0.5131,0.7163,0.4352,"type, comments count, objects, pattern, image_text, comments, keywords",0.6557
+Random forest,0.5972,0.5685,0.754,0.3742,"type, comments count, objects, pattern, image_text, comments, keywords",0.623
+Random forest opt,0.561,0.4977,0.7055,0.4522,"type, comments count, objects, pattern, image_text, comments, keywords",0.6615
+Voting,0.5458,0.4752,0.6894,0.4769,"type, comments count, objects, pattern, image_text, comments, keywords",0.6828
+Samples,6007
+

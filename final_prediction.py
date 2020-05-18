@@ -236,7 +236,7 @@ def vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimat
     
     y_pred = voting_regressor.predict(X_test)
     
-    evaluate('Voting', y_test, y_pred)
+    evaluate('Voting', y_test, y_pred, write_predictions=True)
     
     print("\n*********************************************", end="\n\n")
 
@@ -259,7 +259,7 @@ def auto_prediction(X_train, X_test, y_train, y_test):
     evaluate("Automatic model finder", y_test, y_pred)
 '''
   
-def evaluate(method_name, y_test, y_pred):
+def evaluate(method_name, y_test, y_pred, write_predictions=False):
     
     
     
@@ -282,14 +282,15 @@ def evaluate(method_name, y_test, y_pred):
         
         writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", ""), round(rho,4)])
    
-    with open('predictions.csv', 'a', newline='') as results_file:
-        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        
-        if len(y_test) != len(y_pred):
-            raise
+    if write_predictions == True:
+        with open('predictions.csv', 'a', newline='') as results_file:
+            writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             
-        for i in range(len(y_test)):
-            writer.writerow([y_test[i], y_pred[i]])
+            if len(y_test) != len(y_pred):
+                raise
+                
+            for i in range(len(y_test)):
+                writer.writerow([y_test[i], y_pred[i]])
     
 if __name__=="__main__":
     
@@ -341,6 +342,11 @@ if __name__=="__main__":
         using_features.extend(ew.WORDS_LIST_2)
     
     print("\nUsing features :", using_features)
+    
+    # Transform comments count number
+    # dataset['comments count'] = stats.boxcox(dataset['comments count'] + 1, 0) # 0 -> logarithm transform
+    dataset['image_text'] = stats.boxcox(dataset['image_text'] + 1, 0) # 0 -> logarithm transform
+    
     X = dataset[using_features].values
     
     label_feature = 'log_score'
@@ -362,7 +368,7 @@ if __name__=="__main__":
     baseline_prediction(y)
 
     multi_linear_regression(X_train, X_test, y_train, y_test)
-     
+        
     enet_r2 = elastic_net_prediction(X_train, X_test, y_train, y_test)
     
     alpha, l1_ratio = elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2)
