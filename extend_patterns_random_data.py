@@ -11,6 +11,8 @@ import csv
 
 import os
 
+from shutil import copyfile
+
 CATEGORY = 'Random'
 CATEGORY_ID = 19
 
@@ -95,12 +97,28 @@ def extend_metadata(limit=-1):
             # total += 1
         
     # print(total)
+
+def copy_images(images_folder='scraped_database_tags_new/'):
     
+    with open('metadata.csv', mode='a', newline='') as metadata_file:
+            
+        lines = list(csv.reader(metadata_file))
+        
+        for line in lines:
+            if line[1] == 'Random':
+                img_path = images_folder + line[0]
+                copyfile(img_path, 'scraped/Random')
+        
+
     
 if __name__=="__main__":
     
     # extend_download()
     
     extend_metadata(limit=1500)
+    
+    # copy_images()
+    
+    # copyfile('scraped_database_tags_new/')
     
     pass
