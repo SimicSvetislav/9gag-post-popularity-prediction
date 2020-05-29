@@ -49,7 +49,12 @@ tokenizer = BertTokenizer.from_pretrained(BERT_MODEL_NAME)
 loss_fn = nn.CrossEntropyLoss().to(device)
 
 model = SentimentPredictor(len(CLASS_NAMES))
-model.load_state_dict(torch.load(PRETRAINED_MODEL))
+
+try:    
+    model.load_state_dict(torch.load(PRETRAINED_MODEL))
+except FileNotFoundError:
+    raise Exception("Pretrained model not downloaded.\nPlease run 'gdown --id 1V8itWtowCYnb2Bc9KlK9SxGff9WwmogA' in Anaconda prompt.")
+
 model = model.to(device)
 
 def encode_comment(text):
@@ -139,4 +144,6 @@ if __name__=='__main__':
     # predict_pretrained_bert()
     
     calcualte_post_comments_sentiment()
+    
+    pass
     
