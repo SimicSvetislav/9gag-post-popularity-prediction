@@ -247,3 +247,4 @@ meme_patterns_weights.h5
 
 # Trained BERT model
 **/best_model_state.bin
+**/bert_pretrained.bin
