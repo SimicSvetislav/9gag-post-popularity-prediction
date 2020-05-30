@@ -11,6 +11,10 @@ from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import numpy as np
+
 USE_CUDA  = True
 SOS_token = 0
 EOS_token = 1
@@ -391,10 +395,6 @@ for epoch in range(1, n_epochs + 1):
         plot_loss_avg = plot_loss_total / plot_every
         plot_losses.append(plot_loss_avg)
         plot_loss_total = 0
-
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import numpy as np
 
 def show_plot(points):
     plt.figure()
