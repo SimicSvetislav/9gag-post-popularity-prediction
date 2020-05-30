@@ -151,10 +151,12 @@ class BahdanauAttnDecoderRNN(nn.Module):
         self.output_size = output_size
         self.n_layers    = n_layers
         self.dropout_p   = dropout_p
-        self.max_length  = max_length
+        # self.max_length  = max_length
+        self.max_length  = MAX_LENGTH
         self.embedding   = nn.Embedding(output_size, hidden_size)
         self.dropout     = nn.Dropout(dropout_p)
-        self.attn        = GeneralAttn(hidden_size)
+        # self.attn        = GeneralAttn(hidden_size)
+        self.attn        = Attn(hidden_size)
         self.gru         = nn.GRU(hidden_size * 2, hidden_size, n_layers, dropout=dropout_p)
         self.out         = nn.Linear(hidden_size, output_size)
 
@@ -461,7 +463,8 @@ evaluate_randomly()
 
 while True:
     try:
-        raw = raw_input(">")
+        # raw = raw_input(">")
+        raw = input(">")
         output_words, attentions = evaluate(raw)
         print(output_words)
     except:
