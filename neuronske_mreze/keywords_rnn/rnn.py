@@ -396,6 +396,12 @@ for epoch in range(1, n_epochs + 1):
         plot_losses.append(plot_loss_avg)
         plot_loss_total = 0
 
+#cuvanje modela
+torch.save(encoder.state_dict(), 'keyWordsEncoder.pt')
+torch.save(encoder_optimizer.state_dict(), 'KeyWordsEncoderOptimizer.pt')
+torch.save(decoder.state_dict(), 'keyWordsDecoder.pt')
+torch.save(decoder_optimizer.state_dict(), 'keyWordsDecoderOptimizer.pt')
+
 def show_plot(points):
     plt.figure()
 
