@@ -445,7 +445,7 @@ def evaluate(sentence, max_length=MAX_LENGTH):
             decoded_words.append('<EOS>')
             break
         else:
-            decoded_words.append(output_lang.index2word[ni])
+            decoded_words.append(output_lang.index2word[ni].item())
 
         # Next input is chosen word
         decoder_input = Variable(torch.LongTensor([[ni]]))
