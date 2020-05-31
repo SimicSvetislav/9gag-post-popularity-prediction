@@ -441,11 +441,11 @@ def evaluate(sentence, max_length=MAX_LENGTH):
         # Choose top word from output
         topv, topi = decoder_output.data.topk(1)
         ni = topi[0][0]
-        if ni == EOS_token:
+        if topi.item() == EOS_token:
             decoded_words.append('<EOS>')
             break
         else:
-            decoded_words.append(output_lang.index2word[ni].item())
+            decoded_words.append(output_lang.index2word[topi.item()])
 
         # Next input is chosen word
         decoder_input = Variable(torch.LongTensor([[ni]]))
