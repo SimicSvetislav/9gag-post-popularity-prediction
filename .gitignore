@@ -242,6 +242,11 @@ infinite_scroll.py
 
 neuronske_mreze/end_to_end_encoding/models/*
 
+**/KeyWordsEncoderOptimizer.pt
+**/keyWordsDecoder.pt
+**/keyWordsDecoderOptimizer.pt
+**/keyWordsEncoder.pt
+
 # Too large files with trained model weigths
 meme_patterns_weights.h5
 

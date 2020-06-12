@@ -167,7 +167,6 @@ def prediction_sentiment():
     
     random_forest_prediction_opt(X, y, ids, output_file, 'sentiment')
 
-
 def prediction_keywords():
     
     dataset = pd.read_csv('features_complete_v3.csv')
@@ -226,9 +225,76 @@ def stacking_end_to_end():
     
     sfp.random_forest_prediction_opt(X_train, X_test, y_train, y_test, 'stacking_final_results.csv')
 
+def prediction_sentiment_post_average():
+    
+    prepare_scores()
+    
+    dataset = pd.read_csv('features_complete_v3.csv')
+    
+    X = dataset[['comments']].values
+    
+    ids = dataset['id'].values
+    
+    print("Data shape :", X.shape)
+    
+    y = dataset['score'].values
+    
+    y = list(map(lambda score: log(score+1), y))
+    
+    print("X len", len(X) )
+    
+    if len(X) != 6007 and len(X) != 2905 and len(X) != 2939:
+        raise
+    
+    output_file = 'stacking_pred_sentiment.csv'
+    
+    with open(output_file, 'w', newline='') as results_file:
+        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        writer.writerow(['id', 'ground truth', 'prediction'])
+    
+    random_forest_prediction_opt(X, y, ids, output_file, 'sentiment')
+
+def prediction_sentiment_bert():
+    
+    prepare_scores()
+    
+    dataset = pd.read_csv('neuronske_mreze/comment_sentiment_language_model/comments_post_sentiment.csv')
+    
+    X = dataset[['average_sentiment'
+                 ]].values
+    
+    ids = dataset['id'].values
+    
+    print("Data shape :", X.shape)
+    
+    y = dataset['score'].values
+    
+    y = list(map(lambda score: log(score+1), y))
+    
+    print("X len", len(X) )
+    
+    if len(X) != 6007 and len(X) != 2905 and len(X) != 2939:
+        raise
+    
+    output_file = 'stacking_pred_sentiment.csv'
+    
+    with open(output_file, 'w', newline='') as results_file:
+        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        writer.writerow(['id', 'ground truth', 'prediction'])
+    
+    random_forest_prediction_opt(X, y, ids, output_file, 'sentiment')
+
 
 if __name__=="__main__":
     
-    stacking_end_to_end()
+    # stacking_end_to_end()
+    
+    # prediction_sentiment()
+    
+    prediction_sentiment_post_average()
+    
+    # prediction_sentiment_bert()
     
     # prediction_keywords()

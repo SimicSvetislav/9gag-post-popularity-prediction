@@ -11,6 +11,10 @@ from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import numpy as np
+
 USE_CUDA  = True
 SOS_token = 0
 EOS_token = 1
@@ -392,9 +396,11 @@ for epoch in range(1, n_epochs + 1):
         plot_losses.append(plot_loss_avg)
         plot_loss_total = 0
 
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import numpy as np
+#cuvanje modela
+torch.save(encoder.state_dict(), 'keyWordsEncoder.pt')
+torch.save(encoder_optimizer.state_dict(), 'KeyWordsEncoderOptimizer.pt')
+torch.save(decoder.state_dict(), 'keyWordsDecoder.pt')
+torch.save(decoder_optimizer.state_dict(), 'keyWordsDecoderOptimizer.pt')
 
 def show_plot(points):
     plt.figure()
@@ -435,11 +441,11 @@ def evaluate(sentence, max_length=MAX_LENGTH):
         # Choose top word from output
         topv, topi = decoder_output.data.topk(1)
         ni = topi[0][0]
-        if ni == EOS_token:
+        if topi.item() == EOS_token:
             decoded_words.append('<EOS>')
             break
         else:
-            decoded_words.append(output_lang.index2word[ni])
+            decoded_words.append(output_lang.index2word[topi.item()])
 
         # Next input is chosen word
         decoder_input = Variable(torch.LongTensor([[ni]]))
