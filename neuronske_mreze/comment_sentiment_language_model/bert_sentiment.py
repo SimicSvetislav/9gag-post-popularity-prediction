@@ -2,11 +2,9 @@
 
 from transformers import BertModel, BertTokenizer
 import torch
-
-import numpy as np
-
 from torch import nn
 
+import numpy as np
 import csv
 
 INPUT_FILE = 'comment_data.csv'
@@ -99,7 +97,18 @@ def predict_pretrained_bert():
             
             if i%500==0:
                 print(i)
+
+def read_scores():
+    
+    with open("../../features_complete_v3.csv", "r") as features_file:
+        dict_reader = csv.DictReader(features_file)
+        
+        scores_dict = {}
+        for row in dict_reader:
+            scores_dict[row["id"]] = row["log_score"]
             
+        return scores_dict
+
 def calcualte_post_comments_sentiment():
     
     with open(OUTPUT_FILE, 'r') as comment_scores_file:
@@ -125,18 +134,32 @@ def calcualte_post_comments_sentiment():
             post_counter[post_id] = 1
             post_sums[post_id] = int(row[3])
     
+    scores_dict = read_scores()
+    
     with open(COMMENT_SCORES_FILE, 'w', newline='') as scores_file:
         
         writer = csv.writer(scores_file)
-        writer.writerow(['id', 'average_sentiment'])
+        writer.writerow(['id', 'average_sentiment', 'score'])
+        
+        i = 0
     
         for post_id in post_counter:
             counter = post_counter[post_id]
             sentiment_sum = post_sums[post_id]
             
+            if post_id not in scores_dict: 
+                continue    
+            
+            score = scores_dict[post_id]
+            
             avg_sentiment = sentiment_sum/counter
             
-            writer.writerow([post_id, avg_sentiment])
+            writer.writerow([post_id, avg_sentiment, score])
+            
+            i+=1
+            
+            if i % 100 == 0:
+                print(i)
         
         
 if __name__=='__main__':

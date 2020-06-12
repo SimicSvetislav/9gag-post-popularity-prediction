@@ -17,7 +17,7 @@ import csv
 
 import encode_words as ew
 
-features_file = 'features_complete_v3.csv'
+features_file = 'features_complete_v3_bert.csv'
 results_file_name = 'results_v3.csv'
 
 ALPHA = 0.1
@@ -388,6 +388,7 @@ if __name__=="__main__":
     with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
+        writer.writerow([f"{features_file}"]) 
         writer.writerow(["Samples", len(X)])
         writer.writerow([])
     

@@ -238,6 +238,11 @@ infinite_scroll.py
 **/test_detection
 **/ssd_mobilenet_v2_oid_v4_2018_12_12
 
+**/KeyWordsEncoderOptimizer.pt
+**/keyWordsDecoder.pt
+**/keyWordsDecoderOptimizer.pt
+**/keyWordsEncoder.pt
+
 # Too large files with trained model weigths
 meme_patterns_weights.h5
 

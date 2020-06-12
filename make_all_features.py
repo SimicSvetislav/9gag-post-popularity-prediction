@@ -11,7 +11,7 @@ from math import log
 
 import encode_words as ew
 
-output_file = 'features_complete_v3.csv'
+output_file = 'features_complete_v3_bert.csv'
 
 class Features:
     
@@ -195,7 +195,8 @@ def comments_feature(features_array, missing):
     
     take_avg = 0
     
-    with open("normalized_average_sentiment.csv", 'r', newline='') as comments_file:
+    # with open("normalized_average_sentiment.csv", 'r', newline='') as comments_file:
+    with open("neuronske_mreze/comment_sentiment_language_model/comments_post_sentiment.csv", 'r', newline='') as comments_file:
         lines = list(csv.reader(comments_file))[1:]
         
         # Calculate average
@@ -279,7 +280,7 @@ def combine_all_features():
     
     features_array = image_text_feature(features_array)
     
-    features_array = comments_feature(features_array, 2)
+    features_array = comments_feature(features_array, 1)
     
     features_array = keywords_feature(features_array)
     

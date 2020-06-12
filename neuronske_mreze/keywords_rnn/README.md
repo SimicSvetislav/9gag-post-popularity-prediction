@@ -1,1 +1,1 @@
-# Izvlačenje ključnih reči iz naslova upotrebom LSTM-a
+# Izvlačenje ključnih reči iz naslova upotrebom rekurentnih neuronskih mreža
