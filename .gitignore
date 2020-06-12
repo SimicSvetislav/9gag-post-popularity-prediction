@@ -237,6 +237,10 @@ infinite_scroll.py
 **/ssdlite_mobilenet_v2_coco_2018_05_09
 **/test_detection
 **/ssd_mobilenet_v2_oid_v4_2018_12_12
+**/*.json
+**/*.h5
+
+neuronske_mreze/end_to_end_encoding/models/*
 
 # Too large files with trained model weigths
 meme_patterns_weights.h5
@@ -248,3 +252,6 @@ meme_patterns_weights.h5
 # Trained BERT model
 **/best_model_state.bin
 **/bert_pretrained.bin
+
+# Image encodings
+**/encoded_dumps

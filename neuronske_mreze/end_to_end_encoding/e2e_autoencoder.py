@@ -2,42 +2,56 @@
 import numpy as np
 import os
 from skimage.io import imsave
-from keras.models import Model
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D
-from keras.callbacks import Callback
+from keras.models import Model, model_from_json
+from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Dense, Dropout
 from keras.preprocessing import image
-from  keras.utils import Sequence
+from keras.utils import Sequence
+from keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
-import pathlib
 import matplotlib.pyplot as plt
 import csv
+import pickle
+
+# cuDNN initialization
+# ---------------------------------------
+import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+# ---------------------------------------
 
 IMAGES_FOLDER = '../../scraped_database_tags_new/'
 INPUT_SHAPE = (256, 256, 3) 
 INPUT = Input(shape=INPUT_SHAPE)
+
 ENCODED_SHAPE = (16, 16, 16)
+EPOCHS = 50
+BATCH_SIZE = 4
+MODEL_NAME = 'model_c3'
 
-EPOCHS = 1
+LEARNING_RATE = 0.0001
+OPTIMIZER_NAME = 'adam'
+OPTIMIZER = Adam(learning_rate=LEARNING_RATE)
 
-BATCH_SIZE = 2
-MODEL_NAME = 'simple'
-OPTIMIZER = 'adam'
 IMAGES_OUTPUT_DIRECTORY = 'validation_images_gen/'
 TEST_SIZE = 0.1
-LOSS_FUNCTION = 'mse'
+LOSS_FUNCTION = 'MSE'
 
 OUTPUT_FILE = 'encoded_images.csv'
 
 LIMIT = -1
 
-np.random.seed(42)
+RANDOM_SEED = 100
+np.random.seed(RANDOM_SEED)
+
+ENCODING_DUMPS_FOLDER = 'encoded_dumps/'
 
 if not os.path.exists(IMAGES_OUTPUT_DIRECTORY):
     os.mkdir(IMAGES_OUTPUT_DIRECTORY)
 
 
 class AutoencoderGenerator(Sequence):
-    def __init__(self, image_filenames, batch_size, input_shape) :
+    def __init__(self, image_filenames, batch_size, input_shape):
         self.image_filenames = image_filenames
         self.batch_size = batch_size
         self.input_shape = input_shape
@@ -46,7 +60,7 @@ class AutoencoderGenerator(Sequence):
         return (np.ceil(len(self.image_filenames) / float(self.batch_size))).astype(np.int)
   
   
-    def __getitem__(self, idx) :
+    def __getitem__(self, idx):
         
         batch_x = self.image_filenames[idx * self.batch_size : (idx+1) * self.batch_size]
         
@@ -107,14 +121,17 @@ def prepare_images():
     print(img_data.shape)
     
     print("Splitting...")
-    X_train, X_test, y_train, y_test = train_test_split(img_data, img_data, test_size=TEST_SIZE, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(img_data, img_data, test_size=TEST_SIZE, random_state=RANDOM_SEED)
     print("Done")
     
     return X_train, X_test, y_train, y_test
 
 def build_autoencoder_vgg():
+    
+    input_img = Input(shape=INPUT_SHAPE)  
+    
     # Block 1
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder_block1_conv1')(INPUT)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder_block1_conv1')(input_img)
     x = Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder_block1_conv2')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='encoder_block1_pool')(x)
     
@@ -143,41 +160,8 @@ def build_autoencoder_vgg():
     encoded = MaxPooling2D((2, 2), strides=(2, 2), name='encoder_block5_pool')(x)
     print("Shape of encoded representation :", encoded.shape)
     
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block1_conv1')(encoded)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block1_conv2')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block1_conv3')(x)
-    x = UpSampling2D((2, 2), name='decoder_block1_upscale')(x)
-    
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block2_conv1')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block2_conv2')(x)
-    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block2_conv3')(x)
-    x = UpSampling2D((2, 2), name='decoder_block2_upscale')(x)
-                     
-    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder_block3_conv1')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder_block3_conv2')(x)
-    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder_block3_conv3')(x)
-    x = UpSampling2D((2, 2), name='decoder_block3_upscale')(x)
-    
-    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='decoder_block4_conv1')(x)
-    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='decoder_block4_conv2')(x)
-    x = UpSampling2D((2, 2), name='decoder_block4_upscale')(x)
-    
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='decoder_block5_conv1')(x)
-    x = Conv2D(64, (3, 3), activation='sigmoid', padding='same', name='decoder_block5_conv2')(x)
-    x = UpSampling2D((2, 2), name='decoder_block5_upscale')(x)
-    
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same', name='decoder_output')(x)
-    
-    autoencoder = Model(INPUT, decoded)
-    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
-    
-    print("Input shape :", INPUT.shape)
-    print("Bottleneck shape :", encoded.shape)
-    print("Output shape :", decoded.shape)
-    
-    encoder = Model(INPUT, encoded)
-    
-    encoded_input = Input(shape=(4,4,512))
+    encoder = Model(input_img, encoded)
+    encoded_input = Input(shape=ENCODED_SHAPE)
     
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block1_conv1')(encoded_input)
     x = Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder_block1_conv2')(x)
@@ -203,6 +187,14 @@ def build_autoencoder_vgg():
     x = UpSampling2D((2, 2), name='decoder_block5_upscale')(x)
     
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same', name='decoder_output')(x)
+    
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
 
     return autoencoder, encoder, decoder
 
@@ -220,26 +212,8 @@ def build_autoencoder_simple_bigger_filters():
     print("Shape of encoded representation :", encoded.shape)
     print(encoded.shape[1])
     
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
-    
-    autoencoder = Model(input_img, decoded)
-    # autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
-    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
-    
     encoder = Model(input_img, encoded)
-    
-    # encoding_dim = 128
-    # encoded_input = Input(shape=(encoding_dim,))
-    
-    # encoded_shape = (float(encoded.shape[1]), float(encoded.shape[2]), float(encoded.shape[3]))
-    encoded_input = Input(shape=(16, 16, 16))
-    # encoded_input_shape = Input(shape=(encoded.shape[1], encoded.shape[2], encoded.shape[3]))
+    encoded_input = Input(shape=ENCODED_SHAPE)
     
     x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded_input)
     x = UpSampling2D((2, 2))(x)
@@ -247,9 +221,85 @@ def build_autoencoder_simple_bigger_filters():
     x = UpSampling2D((2, 2))(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x) 
+    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
     decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
+    
+    return autoencoder, encoder, decoder
+
+def build_autoencoder_model_e():
+    
+    input_img = Input(shape=INPUT_SHAPE)  
+
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(input_img)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    encoded = MaxPooling2D((2, 2), padding='same')(x)
+    
+    print("Shape of encoded representation :", encoded.shape)
+    print(encoded.shape[1])
+    
+    encoder = Model(input_img, encoded)
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded_input)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
+    
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
+    
+    return autoencoder, encoder, decoder
+
+def build_autoencoder_model_e_one_piece():
+    
+    input_img = Input(shape=INPUT_SHAPE)
+
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(input_img)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    encoded = MaxPooling2D((2, 2), padding='same')(x)
+    
+    print("Shape of encoded representation :", encoded.shape)
+    print(encoded.shape[1])
+    
+    encoder = Model(input_img, encoded)
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded_input)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
+    
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
     
     return autoencoder, encoder, decoder
 
@@ -271,7 +321,7 @@ def build_autoencoder_model_a():
     
     encoder = Model(input_img, encoded)
     
-    encoded_input = Input(shape=(16, 16, 16))
+    encoded_input = Input(shape=ENCODED_SHAPE)
     
     x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded_input)
     x = UpSampling2D((2, 2))(x)
@@ -307,7 +357,11 @@ def build_autoencoder_model_b():
     print("Shape of encoded representation :", encoded.shape)
     print(encoded.shape[1])
     
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(encoded)
+    encoder = Model(input_img, encoded)
+
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(encoded_input)
     x = UpSampling2D((2, 2))(x)
     x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
@@ -315,6 +369,15 @@ def build_autoencoder_model_b():
     x = UpSampling2D((2, 2))(x)
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
+    
+    '''
     autoencoder = Model(input_img, decoded)
     # autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
     autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
@@ -337,6 +400,7 @@ def build_autoencoder_model_b():
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x) 
     
     decoder = Model(encoded_input, decoded)
+    '''
     
     return autoencoder, encoder, decoder
 
@@ -356,30 +420,11 @@ def build_autoencoder_model_c():
     print("Shape of encoded representation :", encoded.shape)
     print(encoded.shape[1])
     
-    x = Conv2D(64, (3, 3), activation='relu', padding='same')(encoded)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
-    
-    autoencoder = Model(input_img, decoded)
-    # autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
-    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
-    
     encoder = Model(input_img, encoded)
+
+    encoded_input = Input(shape=ENCODED_SHAPE)
     
-    # encoding_dim = 128
-    # encoded_input = Input(shape=(encoding_dim,))
-    
-    # encoded_shape = (float(encoded.shape[1]), float(encoded.shape[2]), float(encoded.shape[3]))
-    encoded_input = Input(shape=(32, 32, 64))
-    # encoded_input_shape = Input(shape=(encoded.shape[1], encoded.shape[2], encoded.shape[3]))
-    
-    x = Conv2D(64, (3, 3), activation='relu', padding='same')(encoded)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(encoded_input)
     x = UpSampling2D((2, 2))(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
@@ -390,6 +435,12 @@ def build_autoencoder_model_c():
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
     decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
     
     return autoencoder, encoder, decoder
 
@@ -472,30 +523,9 @@ def build_autoencoder_model_c2_r():
     print("Shape of encoded representation :", encoded.shape)
     print(encoded.shape[1])
     
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
-    
-    autoencoder = Model(input_img, decoded)
-    # autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
-    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
-    
     encoder = Model(input_img, encoded)
-    
-    # encoding_dim = 128
-    # encoded_input = Input(shape=(encoding_dim,))
-    
-    # encoded_shape = (float(encoded.shape[1]), float(encoded.shape[2]), float(encoded.shape[3]))
-    encoded_input = Input(shape=(16, 16, 8))
-    # encoded_input_shape = Input(shape=(encoded.shape[1], encoded.shape[2], encoded.shape[3]))
+
+    encoded_input = Input(shape=ENCODED_SHAPE)
     
     x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded_input)
     x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
@@ -510,6 +540,99 @@ def build_autoencoder_model_c2_r():
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
     decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
+    
+    return autoencoder, encoder, decoder
+
+def build_autoencoder_model_c3():
+    
+    input_img = Input(shape=INPUT_SHAPE)
+
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(input_img)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    encoded = MaxPooling2D((2, 2), padding='same')(x)
+    
+    print("Shape of encoded representation :", encoded.shape)
+    print(encoded.shape[1])
+    
+    encoder = Model(input_img, encoded)
+
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded_input)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
+    
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
+    
+    return autoencoder, encoder, decoder
+
+def build_autoencoder_model_d():
+    input_img = Input(shape=INPUT_SHAPE)
+
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(input_img)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+    encoded = MaxPooling2D((2, 2), padding='same')(x)
+    
+    encoder = Model(input_img, encoded)
+    
+    print("Shape of encoded representation :", encoded.shape)
+    print(encoded.shape[1])
+    
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(16, (3, 3), activation='relu', padding='same')(encoded_input)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
+    
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
     
     return autoencoder, encoder, decoder
 
@@ -524,10 +647,14 @@ def build_autoencoder_simple():
     x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
     encoded = MaxPooling2D((2, 2), padding='same')(x)
     
+    encoder = Model(input_img, encoded)
+    
     print("Shape of encoded representation :", encoded.shape)
     print(encoded.shape[1])
     
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded_input)
     x = UpSampling2D((2, 2))(x)
     x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
@@ -535,28 +662,13 @@ def build_autoencoder_simple():
     x = UpSampling2D((2, 2))(x)
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
-    autoencoder = Model(input_img, decoded)
-    # autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
-    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
-    
-    encoder = Model(input_img, encoded)
-    
-    # encoding_dim = 128
-    # encoded_input = Input(shape=(encoding_dim,))
-    
-    # encoded_shape = (float(encoded.shape[1]), float(encoded.shape[2]), float(encoded.shape[3]))
-    encoded_input = Input(shape=ENCODED_SHAPE)
-    # encoded_input_shape = Input(shape=(encoded.shape[1], encoded.shape[2], encoded.shape[3]))
-    
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded_input)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
-    x = UpSampling2D((2, 2))(x)
-    x = Conv2D(16, (3, 3), activation='relu')(x)
-    x = UpSampling2D((2, 2))(x)
-    decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
-    
     decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
     
     return autoencoder, encoder, decoder
 
@@ -577,7 +689,11 @@ def build_autoencoder_simple_double_conv():
     print("Shape of encoded representation :", encoded.shape)
     print(encoded.shape[1])
     
-    x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded)
+    encoder = Model(input_img, encoded)
+
+    encoded_input = Input(shape=ENCODED_SHAPE)
+    
+    x = Conv2D(8, (3, 3), activation='relu', padding='same')(encoded_input)
     x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
     x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
@@ -588,6 +704,15 @@ def build_autoencoder_simple_double_conv():
     x = UpSampling2D((2, 2))(x)
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
+    decoder = Model(encoded_input, decoded)
+    
+    encoded = encoder(input_img)
+    decoded = decoder(encoded)
+    autoencoder = Model(input_img, decoded)
+    
+    autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
+    
+    '''
     autoencoder = Model(input_img, decoded)
     autoencoder.compile(optimizer=OPTIMIZER, loss=LOSS_FUNCTION)
     
@@ -607,6 +732,7 @@ def build_autoencoder_simple_double_conv():
     decoded = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)
     
     decoder = Model(encoded_input, decoded)
+    '''
     
     return autoencoder, encoder, decoder
 
@@ -615,15 +741,13 @@ def visualize(history):
     
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
-    # train_acc = history.history['accuracy']
-    # val_acc = history.history['val_accuracy']
     xc=range(EPOCHS)
     
     plt.figure(1,figsize=(7,5))
     plt.plot(xc,train_loss)
     plt.plot(xc,val_loss)
     plt.xlabel('Epochs')
-    plt.ylabel('Loss')
+    plt.ylabel(f'Loss {LOSS_FUNCTION}')
     plt.title('train_loss vs val_loss')
     plt.grid(True)
     plt.legend(['train','val'])
@@ -793,48 +917,14 @@ def evaluate_gen(autoencoder, encoder, decoder, filenames_test):
         ax.get_yaxis().set_visible(False)
     plt.show()
 
-
-def encode_all_images(encoder, image_paths):
-    
-    results = []
-    
-    for ind, img_path in enumerate(image_paths):
-        
-        img = image.load_img(IMAGES_FOLDER + img_path, target_size=INPUT_SHAPE)
-
-        img = image.img_to_array(img)
-        
-        img = np.expand_dims(img, axis=0)
-        
-        np_image = np.array(img)
-    
-        np_image = np_image.astype('float32') / 255.
-        
-        result = encoder.predict(np_image)
-        
-        results.append(result)
-        
-        if ind % 500 == 0:
-            print(ind)
-
-    with open(OUTPUT_FILE, 'w', newline='') as output_file:
-        writer = csv.writer(output_file)
-        
-        writer.writerow(['image', 'encoding'])
-        
-        result_string = [",".join(item) for item in result.astype(str)]
-        
-        for img, result in zip(image_paths, results):
-            writer.writerow([img, result_string])
-
 def build_model(name):
     if name=='model_b':
         return build_autoencoder_model_b()
     elif name=='model_a':
         return build_autoencoder_model_a()
-    elif name=='biffer_filters':
+    elif name=='simple_double_conv':
         return build_autoencoder_simple_double_conv()
-    elif name=='vgg':
+    elif name=='bigger_filters':
         return build_autoencoder_simple_bigger_filters()
     elif name=='vgg':
         return build_autoencoder_vgg()
@@ -846,19 +936,23 @@ def build_model(name):
         return build_autoencoder_model_c_r()
     elif name=='model_c2_r':
         return build_autoencoder_model_c2_r()
+    elif name=='model_d':
+        return build_autoencoder_model_d()
+    elif name=='model_e':
+        return build_autoencoder_model_e()
+    elif name=='model_c3':
+        return build_autoencoder_model_c3()
     else:
         raise Exception("MODEL_NAME not valid")
 
-def encoding():
-    pass
-
-if __name__=="__main__":
-    
+def train_autoencoder():
     autoencoder, encoder, decoder = build_model(MODEL_NAME)
     
     print(autoencoder.summary())
     
-    '''
+    ''' 
+    Tradicionalni način
+    
     x_train, x_test, y_train, y_test = prepare_images()
     
     x_train = x_train.astype('float32') / 255.
@@ -879,17 +973,17 @@ if __name__=="__main__":
     print(len(image_file_names))
     
     X_train, X_val, y_train, y_val = train_test_split(
-        image_file_names, image_file_names, test_size=TEST_SIZE, random_state=42)
+        image_file_names, image_file_names, test_size=TEST_SIZE, random_state=RANDOM_SEED)
     
     training_batch_generator = AutoencoderGenerator(X_train, BATCH_SIZE, INPUT_SHAPE)
     validation_batch_generator = AutoencoderGenerator(X_val, BATCH_SIZE, INPUT_SHAPE)
     
     history = autoencoder.fit_generator(generator=training_batch_generator,
-                   steps_per_epoch = int(len(image_file_names) // BATCH_SIZE),
+                   steps_per_epoch = int(len(X_train) // BATCH_SIZE),
                    epochs = EPOCHS,
                    verbose = 1,
                    validation_data = validation_batch_generator,
-                   validation_steps = int(len(image_file_names) // BATCH_SIZE))
+                   validation_steps = int(len(X_val) // BATCH_SIZE))
     
     visualize(history)
     
@@ -902,25 +996,147 @@ if __name__=="__main__":
     generate_images_gen(input_imgs, autoencoder)
     
     autoencoder_json = autoencoder.to_json()
-    with open("autoencoder_model.json", "w") as json_file:
+    with open(f"autoencoder_model_{MODEL_NAME}.json", "w") as json_file:
         json_file.write(autoencoder_json)
-    autoencoder.save_weights('autoencoder_weights.h5')
+    autoencoder.save_weights(f'autoencoder_weights_{MODEL_NAME}.h5')
     
     encoder_json = encoder.to_json()
-    with open("encoder_model.json", "w") as json_file:
+    with open(f"encoder_model_{MODEL_NAME}.json", "w") as json_file:
         json_file.write(encoder_json)
-    encoder.save_weights('encoder_weights.h5')
+    encoder.save_weights(f'encoder_weights_{MODEL_NAME}.h5')
     
     decoder_json = decoder.to_json()
-    with open("decoder_model.json", "w") as json_file:
+    with open(f"decoder_model_{MODEL_NAME}.json", "w") as json_file:
         json_file.write(decoder_json)
-    decoder.save_weights('decoder_weights.h5')
+    decoder.save_weights(f'decoder_weights_{MODEL_NAME}.h5')
     
     print("Model and weights saved!")
     
     evaluate_gen(autoencoder, encoder, decoder, X_val[idx])
+
+
+def write_encodings_to_csv(image_paths, results):
+    print("Lengrh of results :", len(results))
+
+    with open(OUTPUT_FILE, 'w', newline='') as output_file:
+        writer = csv.writer(output_file)
+        
+        writer.writerow(['image', 'encoding'])
+        
+        for img, result in zip(image_paths, results):
+            result = np.array(result)
+            # print("Shape :", result.shape)
+            result = result.flatten()
+            # print("Shape :", result.shape)
+            result_string = ''
+            for value in result:
+                result_string += str(value) + ' '
+                # print(result_string)
+            
+            writer.writerow([img, result_string])
+
+def dump_encodings(image_paths, results):
+    
+    for img, result in zip(image_paths, results):
+        post_id = img[:img.find('.')]
+        result = np.array(result)
+        result = result.flatten()
+        with open(ENCODING_DUMPS_FOLDER + post_id + '.dmp', 'wb') as pickle_file:
+            pickle.dump(result, pickle_file)
+    
+
+def load_encoder():
+        
+    model_json_file = open(f'encoder_model_{MODEL_NAME}.json', 'r')
+    loaded_model_json = model_json_file.read()
+    model_json_file.close()
+    encoder = model_from_json(loaded_model_json)
+    encoder.load_weights(f"encoder_weights_{MODEL_NAME}.h5")
+    print("Encoder loaded")
+    
+    return encoder
+
+
+def encode_all_images(encoder, image_paths):
+    
+    results = []
+    
+    print("Encoding images...")
+    
+    for ind, img_path in enumerate(image_paths):
+        
+        img = image.load_img(IMAGES_FOLDER + img_path, target_size=INPUT_SHAPE)
+
+        img = image.img_to_array(img)
+        
+        img = np.expand_dims(img, axis=0)
+        
+        np_image = np.array(img)
+    
+        np_image = np_image.astype('float32') / 255.
+        
+        result = encoder.predict(np_image)
+        
+        results.append(result)
+        
+        if ind % 500 == 0:
+            print(ind)
+        
+    print("Length of results :", len(results))
+        
+    # write_encodings_to_csv(image_paths, results)
+    
+    dump_encodings(image_paths, results)
+            
+        
+def encoding():
+    image_file_names = [file_name for file_name in os.listdir(IMAGES_FOLDER)]
+
+    # Load model
+    encoder = load_encoder()
     
     encode_all_images(encoder, image_file_names)
+
+def read_dumps():
+    
+    results = []
+    post_ids = []
+    
+    print("Reading dumps...")
+    
+    for dump_file in os.listdir(ENCODING_DUMPS_FOLDER):
+        with open(ENCODING_DUMPS_FOLDER + dump_file, 'rb') as pickle_file:
+            result = pickle.load(pickle_file)
+            results.append(result)
+            post_ids.append(dump_file[:dump_file.find('.')])
+            # print(result.shape)
+
+    return post_ids, results
+   
+def build_top(encoder_output):
+    
+    top_input = Input(shape=encoder_output.output_shape[1:])
+    
+    model = Flatten()(top_input)
+    model = Dense(1024, activation='relu')(model)
+    model = Dropout(rate=0.5)(model)
+    model = Dense(512, activation='relu')(model)
+    model = Dense(1, activation='linear')(model)
+    
+    regressor = Model(top_input, model, name="top")
+    
+    return regressor
+
+
+if __name__=="__main__":
+    
+    train_autoencoder()
+    
+    # encoding()
+    
+    # read_dumps()
     
     # plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+    
+    pass
     
