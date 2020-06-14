@@ -6,6 +6,7 @@ from torch import nn
 
 import numpy as np
 import csv
+import pandas as pd
 
 INPUT_FILE = 'comment_data.csv'
 OUTPUT_FILE = 'comments_data_sentiment.csv'
@@ -161,12 +162,19 @@ def calcualte_post_comments_sentiment():
             if i % 100 == 0:
                 print(i)
         
+def explore_scores():
+    df = pd.read_csv('comments_data_sentiment.csv')
+    print(df.describe())
+    print(df['sentiment_score'].value_counts())
+
         
 if __name__=='__main__':
     
-    # predict_pretrained_bert()
+    predict_pretrained_bert()
     
     calcualte_post_comments_sentiment()
+    
+    # explore_scores()
     
     pass
     
