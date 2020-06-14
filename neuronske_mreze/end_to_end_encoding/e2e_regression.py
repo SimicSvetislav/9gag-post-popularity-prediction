@@ -6,6 +6,7 @@ from keras.models import Model, model_from_json
 from keras.layers import Input, Flatten, Dense, Dropout, Conv2D, MaxPooling2D
 from keras.preprocessing import image
 from keras.utils import Sequence
+from keras.utils.vis_utils import plot_model
 from keras.optimizers import Adam
 from keras import backend as K
 from sklearn.model_selection import train_test_split
@@ -213,6 +214,8 @@ def build_regression_model_one_piece():
     
     print(regressor.summary())
     
+    plot_model(regressor, to_file=f'model_plot_{MODEL_NAME}.png', show_shapes=True)
+    
     opt = Adam(learning_rate=LEARNING_RATE)
     
     regressor.compile(optimizer=opt, loss=LOSS_FUNCTION, metrics=['mse', 'mae', coeff_determination])
@@ -221,12 +224,12 @@ def build_regression_model_one_piece():
 
 def neural_regression():
     
-    image_file_names = [file_name for file_name in os.listdir(IMAGES_FOLDER)]
-    print(f"Images length : {len(image_file_names)}")
-    
     # regression_model = build_regression_model()
     regression_model = build_regression_model_one_piece()
     
+    image_file_names = [file_name for file_name in os.listdir(IMAGES_FOLDER)]
+    print(f"Images length : {len(image_file_names)}")
+
     scores_dict = read_scores()
     print("Number of loaded scores :", len(scores_dict))
     

@@ -71,8 +71,8 @@ def visualize_attention_maps():
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         
-    plt.show()
-    # plt.savefig('heatmaps.png', bbox_inches='tight')
+    # plt.show()
+    plt.savefig('heatmaps_c3.png', bbox_inches='tight')
     
     
 if __name__=="__main__":
