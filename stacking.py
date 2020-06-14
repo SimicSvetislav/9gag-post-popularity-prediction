@@ -194,37 +194,6 @@ def prediction_keywords():
     random_forest_prediction_opt(X, y, ids, output_file, 'keywords')
 
 
-def stacking_end_to_end():
-    
-    prediction_keywords()
-    
-    prediction_objects()
-    
-    prediction_sentiment()
-
-    features_array = scf.combine_all_features()
-    scf.write_all_features(features_array)
-    
-    dataset = pd.read_csv('stacking_features_complete.csv')
-    
-    X = dataset[['image_pred', 
-                 'sentiment_pred', 
-                 'keywords_pred', 
-                 'comments count', 'type'
-                 ]].values
-    
-    print("Data shape :", X.shape)
-    
-    # y = dataset['score'].values
-    y = dataset['log_score'].values
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
-    
-    if len(X) != 6007:
-        raise
-    
-    sfp.random_forest_prediction_opt(X_train, X_test, y_train, y_test, 'stacking_final_results.csv')
-
 def prediction_sentiment_post_average():
     
     prepare_scores()
@@ -254,6 +223,7 @@ def prediction_sentiment_post_average():
         writer.writerow(['id', 'ground truth', 'prediction'])
     
     random_forest_prediction_opt(X, y, ids, output_file, 'sentiment')
+
 
 def prediction_sentiment_bert():
     
@@ -287,14 +257,49 @@ def prediction_sentiment_bert():
     random_forest_prediction_opt(X, y, ids, output_file, 'sentiment')
 
 
+def stacking_end_to_end():
+    
+    prediction_keywords()
+    
+    prediction_objects()
+    
+    prediction_sentiment()
+    # prediction_sentiment_bert()
+
+    features_array = scf.combine_all_features()
+    scf.write_all_features(features_array)
+    
+    dataset = pd.read_csv('stacking_features_complete.csv')
+    
+    X = dataset[['image_pred', 
+                 'sentiment_pred', 
+                 'keywords_pred', 
+                 'comments count', 'type'
+                 ]].values
+    
+    print("Data shape :", X.shape)
+    
+    # y = dataset['score'].values
+    y = dataset['log_score'].values
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
+    
+    if len(X) != 6007:
+        raise
+    
+    sfp.random_forest_prediction_opt(X_train, X_test, y_train, y_test, 'stacking_final_results.csv')
+
+
 if __name__=="__main__":
     
-    # stacking_end_to_end()
+    stacking_end_to_end()
     
     # prediction_sentiment()
     
-    prediction_sentiment_post_average()
+    # prediction_sentiment_post_average()
     
     # prediction_sentiment_bert()
+    
+    # prediction_objects()
     
     # prediction_keywords()
