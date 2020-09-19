@@ -11,7 +11,7 @@ from math import log
 
 import encode_words as ew
 
-output_file = 'features_complete_v3_bert.csv'
+output_file = 'features_complete_v4.csv'
 
 class Features:
     
@@ -36,7 +36,8 @@ class Features:
             raise
         
         self.score = score
-        self.log_score = log(score+1)
+        # self.log_score = log(score+1)
+        self.log_score = log(score)
         
         self.objects = objects
         self.pattern = pattern
@@ -107,10 +108,11 @@ def database_features():
             records = cursor.fetchall()
         
             for row in records:
-                score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
-                score = int(row[5]) / (int(row[4]+1))
+                # score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
+                # score = int(row[5]) / (int(row[4]+1))
                 # total_votes = int(row[5]) + int(row[4])
                 # score = int(row[5]) / total_votes if total_votes != 0 else 0.5
+                score = int(row[5]+1) / (int(row[4]+1))
                 features = Features(row[0], row[1], row[2], row[3], score, None, None, None, None, None)
                 features_array.append(features)
                 

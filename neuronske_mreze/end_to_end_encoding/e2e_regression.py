@@ -110,7 +110,7 @@ def build_top(encoder_output):
 
 def read_scores():
     
-    with open("../../features_complete_v3.csv", "r") as features_file:
+    with open("../../features_complete_v4.csv", "r") as features_file:
         dictReader = csv.DictReader(features_file)
         
         scores_dict = {}

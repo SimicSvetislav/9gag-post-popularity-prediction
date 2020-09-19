@@ -1,0 +1,112 @@
+Baseline,0.7727,0.9048,0.9512,-0.0268,"type, comments count, objects, pattern, image_text, comments, keywords",nan
+Linear regression,0.7113,0.7457,0.8635,0.1331,"type, comments count, objects, pattern, image_text, comments, keywords",0.4296
+Elastic net,0.7209,0.7627,0.8733,0.1133,"type, comments count, objects, pattern, image_text, comments, keywords",0.651
+Elastic net opt,0.7116,0.7429,0.8619,0.1363,"type, comments count, objects, pattern, image_text, comments, keywords",0.4692
+SVR,0.5651,0.4999,0.707,0.4188,"type, comments count, objects, pattern, image_text, comments, keywords",0.6488
+SVR opt,0.5572,0.4932,0.7023,0.4266,"type, comments count, objects, pattern, image_text, comments, keywords",0.6471
+Random forest,0.5906,0.5553,0.7452,0.3544,"type, comments count, objects, pattern, image_text, comments, keywords",0.6095
+Random forest opt,0.552,0.48,0.6928,0.442,"type, comments count, objects, pattern, image_text, comments, keywords",0.6559
+Voting,0.5207,0.4348,0.6594,0.4945,"type, comments count, objects, pattern, image_text, comments, keywords",0.7009
+features_complete_v4.csv
+Samples,6007
+
+Baseline,0.9054,1.3563,1.1646,-0.0487,"type, comments count, objects, pattern, image_text, comments, keywords",nan
+Linear regression,0.8444,1.0972,1.0475,0.1282,"type, comments count, objects, pattern, image_text, comments, keywords",0.4243
+Elastic net,0.8544,1.1237,1.06,0.1071,"type, comments count, objects, pattern, image_text, comments, keywords",0.651
+Elastic net opt,0.8445,1.0934,1.0457,0.1311,"type, comments count, objects, pattern, image_text, comments, keywords",0.4629
+SVR,0.6737,0.7467,0.8641,0.4067,"type, comments count, objects, pattern, image_text, comments, keywords",0.6488
+SVR opt,0.6616,0.7294,0.8541,0.4204,"type, comments count, objects, pattern, image_text, comments, keywords",0.6457
+Random forest,0.704,0.8182,0.9045,0.3499,"type, comments count, objects, pattern, image_text, comments, keywords",0.6111
+Random forest opt,0.6578,0.7119,0.8437,0.4343,"type, comments count, objects, pattern, image_text, comments, keywords",0.6566
+Voting,0.6205,0.647,0.8043,0.4859,"type, comments count, objects, pattern, image_text, comments, keywords",0.6996
+features_complete_v4.csv
+Samples,6007
+
+Baseline,0.9054,1.3563,1.1646,-0.0487,"objects, pattern, image_text, comments, keywords",nan
+Linear regression,0.9097,1.2545,1.12,0.0031,"objects, pattern, image_text, comments, keywords",0.0584
+Elastic net,0.9129,1.2604,1.1227,-0.0016,"objects, pattern, image_text, comments, keywords",nan
+Elastic net opt,0.9099,1.2531,1.1194,0.0042,"objects, pattern, image_text, comments, keywords",0.0593
+SVR,0.839,1.1608,1.0774,0.0776,"objects, pattern, image_text, comments, keywords",0.2715
+SVR opt,0.8345,1.1534,1.074,0.0834,"objects, pattern, image_text, comments, keywords",0.2638
+Random forest,0.8415,1.131,1.0635,0.1013,"objects, pattern, image_text, comments, keywords",0.3677
+Random forest opt,0.7967,0.9991,0.9996,0.2061,"objects, pattern, image_text, comments, keywords",0.4123
+Voting,0.7579,0.9405,0.9698,0.2526,"objects, pattern, image_text, comments, keywords",0.509
+features_complete_v4.csv
+Samples,6007
+
+Baseline,0.9054,1.3563,1.1646,-0.0487,"objects, pattern, image_text",nan
+Linear regression,0.909,1.2528,1.1193,0.0045,"objects, pattern, image_text",0.0427
+Elastic net,0.9129,1.2604,1.1227,-0.0016,"objects, pattern, image_text",nan
+Elastic net opt,0.9094,1.2537,1.1197,0.0038,"objects, pattern, image_text",0.0382,"{'alpha': 0.001512250315408908, 'l1_ratio': 0.7092179766065657}"
+SVR,0.8726,1.2525,1.1191,0.0047,"objects, pattern, image_text",0.1572
+SVR opt,0.8774,1.2639,1.1242,-0.0044,"objects, pattern, image_text",0.1341,"{'C': 10, 'gamma': 0.01}"
+Random forest,0.9363,1.362,1.167,-0.0823,"objects, pattern, image_text",0.1056
+Random forest opt,0.9022,1.2303,1.1092,0.0224,"objects, pattern, image_text",0.1212,"{'n_estimators': 203, 'max_depth': 5}"
+Baseline,0.9054,1.3563,1.1646,-0.0487,"objects, pattern, image_text",nan
+Linear regression,0.909,1.2528,1.1193,0.0045,"objects, pattern, image_text",0.0427
+Elastic net,0.9129,1.2604,1.1227,-0.0016,"objects, pattern, image_text",nan
+Elastic net opt,0.9106,1.2556,1.1206,0.0022,"objects, pattern, image_text",0.0353,"{'alpha': 0.021704916737847777, 'l1_ratio': 0.15268282789832374}"
+SVR,0.8726,1.2525,1.1191,0.0047,"objects, pattern, image_text",0.1572
+SVR opt,0.8774,1.2639,1.1242,-0.0044,"objects, pattern, image_text",0.1341,"{'C': 10, 'gamma': 0.01}"
+Random forest,0.9341,1.3556,1.1643,-0.0772,"objects, pattern, image_text",0.1108
+Random forest opt,0.9024,1.2316,1.1098,0.0213,"objects, pattern, image_text",0.1229,"{'n_estimators': 201, 'max_depth': 4}"
+Random forest opt,0.9039,1.2362,1.1119,0.0177,"objects, pattern, image_text",0.1285,"{'n_estimators': 170, 'max_depth': 3}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9019,1.2304,1.1092,0.0223,"objects, pattern, image_text",0.1231,"{'n_estimators': 51, 'max_depth': 5}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9091,1.2517,1.1188,0.0053,objects,0.0283,"{'n_estimators': 282, 'max_depth': 2}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9132,1.2605,1.1227,-0.0016,pattern,0.0139,"{'n_estimators': 70, 'max_depth': 20}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9066,1.244,1.1153,0.0115,image_text,0.0866,"{'n_estimators': 54, 'max_depth': 3}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9042,1.2394,1.1133,0.0151,"image_text, objects",0.1206,"{'n_estimators': 42, 'max_depth': 3}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9127,1.2603,1.1226,-0.0014,pattern,0.0139,"{'n_estimators': 65, 'max_depth': 49}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9029,1.2344,1.111,0.0191,"image_text, objects",0.1293,"{'n_estimators': 24, 'max_depth': 4}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9075,1.2435,1.1151,0.0119,image_text,0.0835,"{'n_estimators': 178, 'max_depth': 3}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.907,1.2438,1.1152,0.0117,image_text,0.0841,"{'n_estimators': 169, 'max_depth': 3}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9025,1.2319,1.1099,0.0211,"image_text, objects",0.1229,"{'n_estimators': 296, 'max_depth': 4}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9014,1.2279,1.1081,0.0243,"image_text, objects",0.1275,"{'n_estimators': 276, 'max_depth': 5}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9026,1.2318,1.1099,0.0212,"objects, pattern, image_text",0.1204,"{'n_estimators': 174, 'max_depth': 4}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.902,1.2289,1.1085,0.0235,"objects, pattern, image_text",0.1255,"{'n_estimators': 30, 'max_depth': 4}"
+features_complete_v4.csv
+Samples,6007
+
+Random forest opt,0.9118,1.2578,1.1215,0.0005,keywords,-0.0045,"{'n_estimators': 124, 'max_depth': 5}"
+features_complete_v4.csv
+Samples,6007
+
