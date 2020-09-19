@@ -76,7 +76,7 @@ def random_forest_prediction_opt(X, y, ids, output_file, on_what):
     
 def prediction_objects():
     
-    dataset = pd.read_csv('features_complete_v3.csv')
+    dataset = pd.read_csv('features_complete_v4.csv')
     
     X = dataset[['person', 'people', 'cat', 'dog', 'other animal', 'poster', 
                  # 'clothing', 
@@ -106,7 +106,7 @@ def prediction_objects():
     
 def prepare_scores():
     
-    ds_v2 = pd.read_csv('features_complete_v3.csv')
+    ds_v2 = pd.read_csv('features_complete_v4.csv')
     
     scores_dict = {}
     
@@ -153,7 +153,8 @@ def prediction_sentiment():
     
     y = dataset['score'].values
     
-    y = list(map(lambda score: log(score+1), y))
+    # y = list(map(lambda score: log(score+1), y))
+    y = list(map(lambda score: log(score), y))
     
     if len(X) != 6007 and len(X) != 2905:
         raise
@@ -169,7 +170,7 @@ def prediction_sentiment():
 
 def prediction_keywords():
     
-    dataset = pd.read_csv('features_complete_v3.csv')
+    dataset = pd.read_csv('features_complete_v4.csv')
     
     X = dataset[WORDS_LIST_2].values
     
@@ -198,7 +199,7 @@ def prediction_sentiment_post_average():
     
     prepare_scores()
     
-    dataset = pd.read_csv('features_complete_v3.csv')
+    dataset = pd.read_csv('features_complete_v4.csv')
     
     X = dataset[['comments']].values
     
@@ -208,7 +209,8 @@ def prediction_sentiment_post_average():
     
     y = dataset['score'].values
     
-    y = list(map(lambda score: log(score+1), y))
+    # y = list(map(lambda score: log(score+1), y))
+    y = list(map(lambda score: log(score), y))
     
     print("X len", len(X) )
     
@@ -240,7 +242,8 @@ def prediction_sentiment_bert():
     
     y = dataset['score'].values
     
-    y = list(map(lambda score: log(score+1), y))
+    # y = list(map(lambda score: log(score+1), y))
+    y = list(map(lambda score: log(score), y))
     
     print("X len", len(X) )
     
@@ -292,7 +295,7 @@ def stacking_end_to_end():
 
 if __name__=="__main__":
     
-    stacking_end_to_end()
+    # stacking_end_to_end()
     
     # prediction_sentiment()
     
@@ -300,6 +303,6 @@ if __name__=="__main__":
     
     # prediction_sentiment_bert()
     
-    # prediction_objects()
+    prediction_objects()
     
     # prediction_keywords()

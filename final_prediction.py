@@ -1,4 +1,4 @@
-+# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import pandas as pd
 import numpy as np
@@ -17,8 +17,9 @@ import csv
 
 import encode_words as ew
 
-features_file = 'features_complete_v3_bert.csv'
-results_file_name = 'results_v3.csv'
+features_file = 'features_complete_v4.csv'
+results_file_name = 'results_v4.csv'
+scoring = 'r2'
 
 ALPHA = 0.1
 L1_RATIO = 0.7
@@ -29,7 +30,12 @@ MAX_DEPTH = 5
 # When using all data
 # USE_DATA = ['objects', 'pattern', 'comments', 'keywords']
 USE_DATA = ['objects', 'pattern', 'image_text', 'comments', 'keywords']
-# USE_DATA = []
+# USE_DATA = ['objects', 'pattern', 'image_text']
+# USE_DATA = ['objects']
+# USE_DATA = ['pattern']
+# USE_DATA = ['image_text']
+# USE_DATA = ['image_text', 'objects']
+# USE_DATA = ['keywords']
 
 # Database features
 # using_features = ['comments count', 'section', 'type']
@@ -72,7 +78,7 @@ def elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2):
     
     enet = ElasticNet()
     model_cv = RandomizedSearchCV(enet, param_dist, cv=10, n_iter=100, 
-                                  scoring='r2', n_jobs=4, verbose=1
+                                  scoring=scoring, n_jobs=4, verbose=1
                               )
     
     
@@ -91,11 +97,11 @@ def elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2):
     
     # print("Best params : alpha={0}; l1_ratio={1}".format(model_cv.alpha_, model_cv.l1_ratio_), end="\n\n")
     print("Best params :", model_cv.best_params_)
-    print("Best score :", model_cv.best_score_)
+    print(f"Best {scoring} score :", model_cv.best_score_)
     
     y_pred = model_cv.predict(X_test)
     
-    evaluate('Elastic net opt', y_test, y_pred)
+    evaluate('Elastic net opt', y_test, y_pred, model_cv.best_params_)
         
     print("\n*********************************************", end="\n\n")
     
@@ -136,15 +142,15 @@ def svr_regression_opt(X_train, X_test, y_train, y_test):
     param_grid = {'C': Cs, 'gamma' : gammas}
     
     regressor = GridSearchCV(svr, param_grid, cv=10,
-                              scoring='r2', n_jobs=4, verbose=1)
+                              scoring=scoring, n_jobs=4, verbose=1)
     
     regressor.fit(X_train, y_train)
     print("Best params :", regressor.best_params_)
-    print("Best score :", regressor.best_score_)
+    print(f"Best {scoring} score :", regressor.best_score_)
     
     y_pred = regressor.predict(X_test)
     
-    evaluate('SVR opt', y_test, y_pred)
+    evaluate('SVR opt', y_test, y_pred, params=regressor.best_params_)
     
     print("\n*********************************************", end="\n\n")
 
@@ -155,6 +161,7 @@ def svr_regression_opt(X_train, X_test, y_train, y_test):
     # print('Gamma :', gamma)
     
     return c, gamma
+    # return regressor
 
 
 def random_forest_prediction(X_train, X_test, y_train, y_test):
@@ -179,16 +186,20 @@ def random_forest_prediction_opt(X_train, X_test, y_train, y_test):
 
     forest = RandomForestRegressor()
     rscv = RandomizedSearchCV(forest, param_dist, cv=10, n_iter=100, 
-                              scoring='r2', n_jobs=4, verbose=1)
+                              scoring=scoring, n_jobs=4, verbose=1)
     
     rscv.fit(X_train, y_train)
     
     print("Best params :", rscv.best_params_)
-    print("Best score :", rscv.best_score_, end="\n\n")
+    print(f"Best {scoring} score :", rscv.best_score_, end="\n\n")
     
     y_pred = rscv.predict(X_test)
     
-    evaluate('Random forest opt', y_test, y_pred)
+    scores = rscv.score(y_pred, y_test)
+    
+    print("Score:", scores)
+    
+    evaluate('Random forest opt', y_test, y_pred, rscv.best_params_)
     
     print("\n*********************************************", end="\n\n")
 
@@ -196,6 +207,7 @@ def random_forest_prediction_opt(X_train, X_test, y_train, y_test):
     max_depth = rscv.best_params_['max_depth']
 
     return n_estimators, max_depth
+    # return rscv
 
 def baseline_prediction(y_test):
     
@@ -216,6 +228,7 @@ def baseline_prediction(y_test):
     print("\n*********************************************", end="\n\n")
 
 def vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth, c, gamma):
+# def vote_prediction(X_train, X_test, y_train, y_test, forest, svr):
     
     print("******************* VOTING ******************", end="\n\n")
     
@@ -259,9 +272,7 @@ def auto_prediction(X_train, X_test, y_train, y_test):
     evaluate("Automatic model finder", y_test, y_pred)
 '''
   
-def evaluate(method_name, y_test, y_pred, write_predictions=False):
-    
-    
+def evaluate(method_name, y_test, y_pred, params=None, write_predictions=False):
     
     mae = metrics.mean_absolute_error(y_test, y_pred)
     mse = metrics.mean_squared_error(y_test, y_pred)
@@ -280,8 +291,11 @@ def evaluate(method_name, y_test, y_pred, write_predictions=False):
     with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
-        writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", ""), round(rho,4)])
-   
+        if params == None:
+            writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", ""), round(rho,4)])
+        else:
+            writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), str(used_features)[1:-1].replace("'", ""), round(rho,4), params])
+    
     if write_predictions == True:
         with open('predictions.csv', 'a', newline='') as results_file:
             writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -291,13 +305,38 @@ def evaluate(method_name, y_test, y_pred, write_predictions=False):
                 
             for i in range(len(y_test)):
                 writer.writerow([y_test[i], y_pred[i]])
+
+
+def run_all_models():
     
+    baseline_prediction(y)
+
+    multi_linear_regression(X_train, X_test, y_train, y_test)
+        
+    enet_r2 = elastic_net_prediction(X_train, X_test, y_train, y_test)
+    
+    alpha, l1_ratio = elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2)
+    
+    svr_regression(X_train, X_test, y_train, y_test)
+    
+    c, gamma = svr_regression_opt(X_train, X_test, y_train, y_test)
+    # svr = svr_regression_opt(X_train, X_test, y_train, y_test)
+    
+    random_forest_prediction(X_train, X_test, y_train, y_test)
+        
+    n_estimators, max_depth = random_forest_prediction_opt(X_train, X_test, y_train, y_test)
+    # rf = random_forest_prediction_opt(X_train, X_test, y_train, y_test)
+    
+    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth, c, gamma)
+    # vote_prediction(X_train, X_test, y_train, y_test, rf, svr)
+
+    # auto_prediction(X_train, X_test, y_train, y_test)
+
 if __name__=="__main__":
     
     dataset = pd.read_csv(features_file)
     
     print(dataset.describe())
-    
     
      
     # Using all data
@@ -311,7 +350,8 @@ if __name__=="__main__":
     
     # Database features
     # using_features = ['comments count', 'section', 'type']
-    using_features = ['type', 'comments count']
+    # using_features = ['type', 'comments count']
+    using_features = []
     
     used_features = using_features.copy()
         
@@ -322,7 +362,9 @@ if __name__=="__main__":
     if 'objects' in USE_DATA:
         print('OBJECTS ', end='')
         using_features.extend(['person', 'people', 'cat', 'dog', 
-             'other animal', 'poster', 'clothing', 'car', 'toy', 'tree', 'glasses', 
+             'other animal', 'poster', 
+             # 'clothing', 
+             'car', 'toy', 'tree', 'glasses', 
              'building', 'electronic device', 'airplane', 'guitar'])
     
     if 'pattern' in USE_DATA:
@@ -345,7 +387,7 @@ if __name__=="__main__":
     
     # Transform comments count number
     # dataset['comments count'] = stats.boxcox(dataset['comments count'] + 1, 0) # 0 -> logarithm transform
-    dataset['image_text'] = stats.boxcox(dataset['image_text'] + 1, 0) # 0 -> logarithm transform
+    # dataset['image_text'] = stats.boxcox(dataset['image_text'] + 1, 0) # 0 -> logarithm transform
     
     X = dataset[using_features].values
     
@@ -364,26 +406,10 @@ if __name__=="__main__":
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         writer.writerow(['y', 'prediction'])
-
-    baseline_prediction(y)
-
-    multi_linear_regression(X_train, X_test, y_train, y_test)
-        
-    enet_r2 = elastic_net_prediction(X_train, X_test, y_train, y_test)
     
-    alpha, l1_ratio = elastic_net_prediction_opt(X_train, X_test, y_train, y_test, enet_r2)
+    # run_all_models()
     
-    svr_regression(X_train, X_test, y_train, y_test)
-    
-    c, gamma = svr_regression_opt(X_train, X_test, y_train, y_test)
-    
-    random_forest_prediction(X_train, X_test, y_train, y_test)
-        
-    n_estimators, max_depth = random_forest_prediction_opt(X_train, X_test, y_train, y_test)
-    
-    vote_prediction(X_train, X_test, y_train, y_test, alpha, l1_ratio, n_estimators, max_depth, c, gamma)
-
-    # auto_prediction(X_train, X_test, y_train, y_test)
+    random_forest_prediction_opt(X_train, X_test, y_train, y_test)
     
     with open(results_file_name, 'a', newline='') as results_file:
         writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)

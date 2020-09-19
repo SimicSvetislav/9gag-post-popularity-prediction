@@ -24,7 +24,8 @@ class Features:
             raise
         
         self.score = score
-        self.log_score = math.log(score+1)
+        # self.log_score = math.log(score+1)
+        self.log_score = math.log(score)
         
         self.image_pred = image_pred
         
@@ -88,7 +89,8 @@ def database_features():
         
             for row in records:
                 # score = int(row[5]) / int(row[4]) if int(row[4] != 0) else int(row[5])
-                score = int(row[5]) / (int(row[4]+1))
+                # score = int(row[5]) / (int(row[4]+1))
+                score = int(row[5]+1) / (int(row[4]+1))
                 features = Features(row[0], row[1], row[3], score, None, None, None)
                 features_array.append(features)
                 
