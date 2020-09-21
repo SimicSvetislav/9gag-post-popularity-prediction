@@ -11,6 +11,13 @@ from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from keras.utils import to_categorical
 from sklearn.utils.multiclass import type_of_target
 
+import scipy.stats as stats
+
+import csv
+
+from statistics import mean
+
+results_file_name = "results_v5.csv"
 
 def stacking_v2(model, train, y, test, n_fold):
     folds=KFold(n_splits=n_fold,random_state=None, shuffle=False)
@@ -28,7 +35,8 @@ def stacking_v2(model, train, y, test, n_fold):
         
         x_val_pred = model.predict(x_val)
         train_pred = np.append(train_pred, x_val_pred)
-        
+    
+    model.fit(X=train.values,y=y.values.ravel())
     test_pred = np.append(test_pred, model.predict(test))
     
     return test_pred.reshape(-1,1),train_pred
@@ -46,6 +54,50 @@ COMMENT_COL = ['comments']
 KEYWORD_COLS = ['get', 'like', 'go', 'make', 'one', 'quarantine', 'time', 
                 'good', 'know', 'day', 'guy', 'see', 'look', 'new', 
                 'people', 'right', 'old', 'say', 'year', 'still']
+
+mses = []
+r2s = []
+rhos = []
+pvals = []
+
+def evaluate(method_name, y_test, y_pred, params=None, write_predictions=False):
+    
+    mae = metrics.mean_absolute_error(y_test, y_pred)
+    mse = metrics.mean_squared_error(y_test, y_pred)
+    rmse = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
+    r2 = metrics.r2_score(y_test, y_pred)
+    
+    rho, pval = stats.spearmanr(y_pred, y_test)
+    
+    print('Mean Absolute Error:', mae)  
+    print('Mean Squared Error:', mse)  
+    print('Root Mean Squared Error:', rmse) 
+    print("r^2 on test data :", r2)
+    print("Spearman rank :", rho)
+    print("P-value :", pval)
+    
+    mses.append(mse)
+    r2s.append(r2)
+    rhos.append(rho)
+    pvals.append(pval)
+    
+    with open(results_file_name, 'a', newline='') as results_file:
+        writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        if params == None:
+            writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), round(rho,4), 'stacking'])
+        else:
+            writer.writerow([method_name, round(mae,4), round(mse,4), round(rmse,4), round(r2,4), round(rho,4), 'stracking', params])
+    
+    if write_predictions == True:
+        with open('predictions.csv', 'a', newline='') as results_file:
+            writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            
+            if len(y_test) != len(y_pred):
+                raise
+                
+            for i in range(len(y_test)):
+                writer.writerow([y_test[i], y_pred[i]])
 
 def experiment():
     
@@ -132,21 +184,60 @@ def experiment():
     
     ###
     
-    df = pd.concat([train_pred_1, train_pred_2, train_pred_3, train_pred_4], axis=1)
-    df_test = pd.concat([test_pred_1, test_pred_2, test_pred_3, test_pred_4], axis=1)
+    final_train_set = pd.concat([train_pred_1, train_pred_2, train_pred_3, train_pred_4], axis=1)
+    final_test_set = pd.concat([test_pred_1, test_pred_2, test_pred_3, test_pred_4], axis=1)
     
     # model = RandomForestRegressor(n_estimators=150, max_depth=6)
     model = LinearRegression()
-    model.fit(df, y_train)
     
-    print(df.shape)
-    print(df_test.shape)
+    # forest_final = RandomForestRegressor()
+    # model = RandomizedSearchCV(forest_final, param_dist, cv=10, n_iter=10, 
+    #                         scoring='r2', n_jobs=4, verbose=1)
+    
+    model.fit(final_train_set, y_train)
+    
+    print(final_train_set.shape)
+    print(final_test_set.shape)
     print(y_test.shape)
     
-    scores = model.score(df_test, y_test)
+    scores = model.score(final_test_set, y_test)
     
     print(scores)
 
+    print(X_test.shape)
+
+    y_predictions = model.predict(final_test_set)
+
+    print(y_predictions.shape)
+
+    evaluate("Stacking", y_test.values, y_predictions, write_predictions=True)
+
+def report_metrics():
+    print(f"MSEs = {mses}")
+    print(f"MSE mean = {mean(mses)}")   
+    print()
+    
+    print(f"R2s = {r2s}")
+    print(f"R2 mean = {mean(r2s)}")   
+    print()
+    
+    print(f"RHOs = {rhos}")
+    print(f"RHO mean = {mean(rhos)}")   
+    print()
+    
+    print(f"p-values = {pvals}")
+    print(f"p-value mean = {mean(pvals)}")
+    
 
 if __name__ == "__main__":    
-    experiment()
+    
+    for i in range(10):
+        print(f'**************************** ITERATION {i+1} ****************************')
+        experiment()
+    
+    report_metrics()
+    
+    
+    
+    
+    
