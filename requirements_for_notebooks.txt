@@ -56,7 +56,7 @@ pyrsistent==0.15.6
 pytesseract==0.3.1
 python-dateutil==2.8.1
 pytz==2019.3
-pywin32==227
+pywin32==301
 pywinpty==0.5.7
 pyzmq==18.1.0
 qtconsole==4.6.0
